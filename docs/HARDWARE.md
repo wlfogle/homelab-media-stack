@@ -36,8 +36,8 @@
 | **RAM** | 1GB LPDDR2 |
 | **Storage** | microSD (class 10 / A1 recommended, 16GB+) |
 | **Networking** | 10/100 Ethernet + 802.11AC Wi-Fi (use wired) |
-| **OS** | Raspberry Pi OS Lite (32-bit) |
-| **Services** | Pi-hole (primary), WireGuard, Vaultwarden |
+| **OS** | Raspberry Pi OS Lite 64-bit (Bookworm) |
+| **Services** | AdGuard Home (replica), wg-easy (remote VPN), Vaultwarden |
 
 > Vaultwarden requires HTTPS. Use Caddy as a reverse proxy on the Pi for automatic TLS.
 
@@ -45,9 +45,9 @@
 
 | Device | Role |
 |--------|------|
-| Fire TV | Primary media playback + paid streaming apps |
-| Tablet | Media requests (Overseerr), monitoring dashboards |
-| Laptop | Proxmox admin, service management, browser dashboards |
+| 2x Fire TV + Fire TV Cube | Jellyfin + Plex, Homarr/Overseerr via Silk Browser, nzb360 sideload, TiamatsStack APK |
+| Android (tablet/phone) | Jellyfin, Plex, nzb360, Bitwarden, WireGuard |
+| Laptop | Proxmox admin, Homarr, MediaStack Control, SSH |
 
 ## Network Requirements
 

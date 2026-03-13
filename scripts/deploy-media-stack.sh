@@ -1,7 +1,13 @@
 #!/bin/bash
 # ============================================================
 # Deploy Full Media Stack to Proxmox LXC
-# Creates containers for: media stack, AdGuard Home, WireGuard VPN
+# Creates containers/VMs for:
+#   CT-100  WireGuard Server (Alpine)
+#   CT-101  Gluetun/TinyProxy VPN proxy (Alpine, privileged)
+#   CT-102  AdGuard Home DNS (Debian)
+#   CT-110  Media Stack — Jellyfin/Plex/Sonarr/Radarr/etc (Debian)
+#   CT-150  Fire TV ADB Controller (Ubuntu)
+#   VM-200  Windows 10 for PlayOn Desktop (manual setup — see proxmox/vm-windows-playon.md)
 # Run on Proxmox host as root after setup-proxmox.sh
 # ============================================================
 set -e
@@ -79,11 +85,30 @@ lxc.cgroup.devices.allow: c 226:128 rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 EOF
 
+# ── CT-150: Fire TV ADB Controller ─────────────────────────
+UBUNTU_TEMPLATE=$(pveam list local | grep ubuntu-22 | awk '{print $1}' | head -1)
+if [ -z "$UBUNTU_TEMPLATE" ]; then
+  echo "==> Downloading Ubuntu 22.04 template..."
+  pveam update
+  pveam download local ubuntu-22.04-standard_22.04-1_amd64.tar.zst
+  UBUNTU_TEMPLATE=$(pveam list local | grep ubuntu-22 | awk '{print $1}' | head -1)
+fi
+
+echo "==> Creating CT-150 (Fire TV ADB Controller)..."
+pct create 150 "$UBUNTU_TEMPLATE" \
+  --hostname firetv-controller \
+  --memory 1024 --cores 1 \
+  --net0 name=eth0,bridge=vmbr0,ip=192.168.12.150/24,gw=192.168.12.1 \
+  --storage local-lvm --rootfs local-lvm:8 \
+  --unprivileged 1 --features nesting=1 \
+  --onboot 1
+
 echo "==> Starting containers..."
 pct start 100
 pct start 101
 pct start 102
 pct start 110
+pct start 150
 
 sleep 5
 
@@ -99,21 +124,61 @@ pct exec 110 -- bash -c "git clone https://github.com/wlfogle/homelab-media-stac
 echo "==> Deploying media stack in CT-110..."
 pct exec 110 -- bash -c "cp /opt/homelab-media-stack/media-stack/.env.example /opt/homelab-media-stack/media-stack/.env && cd /opt/homelab-media-stack/media-stack && docker compose up -d"
 
+echo "==> Setting up CT-150 (Fire TV ADB Controller)..."
+pct exec 150 -- bash -c "
+  apt update -qq && apt install -y python3 python3-pip adb curl git
+  pip3 install flask flask-cors
+  mkdir -p /opt/firetv-controller
+  git clone https://github.com/wlfogle/homelab-media-stack.git /tmp/hms
+  cp -r /tmp/hms/infrastructure/firetv-controller/* /opt/firetv-controller/
+  cat > /etc/systemd/system/firetv-controller.service <<'SVCEOF'
+[Unit]
+Description=Fire TV ADB Controller
+After=network.target
+[Service]
+WorkingDirectory=/opt/firetv-controller
+ExecStart=/usr/bin/python3 /opt/firetv-controller/api.py
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+  systemctl daemon-reload
+  systemctl enable --now firetv-controller
+"
+
 echo ""
-echo "=== Media Stack Deployed ==="
+echo "========================================================="
+echo "  Tiamat Media Stack — Deployment Complete"
+echo "========================================================="
 echo ""
-echo "Container IPs:"
-echo "  CT-100 (WireGuard Server):  192.168.12.100"
-echo "  CT-101 (Gluetun Proxy):     192.168.12.101"
-echo "  CT-102 (AdGuard Home):      192.168.12.102 → http://192.168.12.102:3000 (setup)"
-echo "  CT-110 (Media Stack):       192.168.12.110"
+echo "CONTAINERS:"
+echo "  CT-100  WireGuard VPN Server   192.168.12.100"
+echo "  CT-101  Gluetun/TinyProxy      192.168.12.101  (qBit VPN proxy :8888)"
+echo "  CT-102  AdGuard Home DNS       192.168.12.102"
+echo "  CT-110  Media Stack            192.168.12.110"
+echo "  CT-150  Fire TV ADB Ctrl       192.168.12.150  (Flask API :5000)"
 echo ""
-echo "Media services accessible at 192.168.12.110:"
-echo "  Jellyfin:    :8096"
-echo "  Sonarr:      :8989"
-echo "  Radarr:      :7878"
-echo "  Prowlarr:    :9696"
-echo "  qBittorrent: :9090"
-echo "  Overseerr:   :5055"
+echo "NOTE — VM-200 (Windows 10 / PlayOn Desktop):"
+echo "  Create manually via Proxmox web UI — see proxmox/vm-windows-playon.md"
+echo "  Target IP: 192.168.12.200, 4 cores, 4GB RAM, 60GB disk"
 echo ""
-echo "Next: Run setup-wg-server.sh in CT-100 to configure VPN"
+echo "MEDIA SERVICES  (all at 192.168.12.110):"
+echo "  Homarr Dashboard  http://192.168.12.110:7575"
+echo "  Jellyfin          http://192.168.12.110:8096"
+echo "  Plex              http://192.168.12.110:32400/web"
+echo "  Overseerr         http://192.168.12.110:5055"
+echo "  Sonarr            http://192.168.12.110:8989"
+echo "  Radarr            http://192.168.12.110:7878"
+echo "  Prowlarr          http://192.168.12.110:9696"
+echo "  qBittorrent       http://192.168.12.110:9090"
+echo "  Bazarr            http://192.168.12.110:6767"
+echo "  Tautulli          http://192.168.12.110:8181"
+echo "  AdGuard Home      http://192.168.12.102:3000"
+echo ""
+echo "NEXT STEPS:"
+echo "  1. Edit /opt/homelab-media-stack/media-stack/.env in CT-110 (set PLEX_CLAIM, etc)"
+echo "  2. Run infrastructure/wireguard-server/setup-wg-server.sh in CT-100"
+echo "  3. Run scripts/setup-duckdns.sh for DuckDNS dynamic DNS"
+echo "  4. See docs/INDEXERS.md to configure Sonarr/Radarr indexers"
+echo "  5. Sideload android-app/ to Fire TVs: ./android-app/build-app.sh install-firetv"

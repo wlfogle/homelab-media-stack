@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Allow cleartext HTTP to the homelab subnet (192.168.12.x).
+  All LAN traffic is private — no public cleartext.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- CT-110: media stack -->
+        <domain includeSubdomains="false">192.168.12.110</domain>
+        <!-- CT-102: AdGuard Home -->
+        <domain includeSubdomains="false">192.168.12.102</domain>
+        <!-- CT-100/101: WireGuard / Gluetun -->
+        <domain includeSubdomains="false">192.168.12.100</domain>
+        <domain includeSubdomains="false">192.168.12.101</domain>
+        <!-- Pi 3B+ -->
+        <domain includeSubdomains="false">192.168.12.20</domain>
+        <!-- DuckDNS (HTTPS so this is just a fallback) -->
+        <domain includeSubdomains="true">lou-fogle-media-stack.duckdns.org</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
