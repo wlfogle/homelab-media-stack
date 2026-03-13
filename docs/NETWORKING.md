@@ -44,46 +44,65 @@ dns-nameservers 192.168.12.1
 | Service | Port | URL |
 |---------|------|-----|
 | Proxmox Web UI | 8006 | https://192.168.12.10:8006 |
-| Traefik Dashboard | 8080 | http://192.168.12.10:8080 |
-| Jellyfin | 8096 | http://192.168.12.10:8096 |
-| Sonarr | 8989 | http://192.168.12.10:8989 |
-| Radarr | 7878 | http://192.168.12.10:7878 |
-| qBittorrent | 9090 | http://192.168.12.10:9090 |
-| Overseerr | 5055 | http://192.168.12.10:5055 |
-| Pi-hole (secondary) | 80 | http://192.168.12.10/admin |
-| Grafana | 3000 | http://192.168.12.10:3000 |
+
+### CT-102 — AdGuard Home (192.168.12.102)
+
+| Service | Port | URL |
+|---------|------|-----|
+| AdGuard Home Web UI | 80 | http://192.168.12.102 |
+| DNS | 53 | Set as DNS 1 on router |
+
+### CT-110 — Media Stack (192.168.12.110)
+
+| Service | Port | URL |
+|---------|------|-----|
+| **Homarr** (unified dashboard) | 7575 | http://192.168.12.110:7575 |
+| **MediaStack Control** | 9900 | http://192.168.12.110:9900 |
+| Jellyfin | 8096 | http://192.168.12.110:8096 |
+| Overseerr | 5055 | http://192.168.12.110:5055 |
+| Sonarr | 8989 | http://192.168.12.110:8989 |
+| Radarr | 7878 | http://192.168.12.110:7878 |
+| Prowlarr | 9696 | http://192.168.12.110:9696 |
+| qBittorrent | 9090 | http://192.168.12.110:9090 |
+| Bazarr | 6767 | http://192.168.12.110:6767 |
+| Traefik Dashboard | 8080 | http://192.168.12.110:8080 |
 
 ### Raspberry Pi 3B+ (192.168.12.20)
 
 | Service | Port | URL |
 |---------|------|-----|
-| Pi-hole (primary) | 80 | http://192.168.12.20/admin |
-| WireGuard | 51820/UDP | VPN — router must forward to Pi |
+| AdGuard Home replica | 80 | http://192.168.12.20 |
+| DNS replica | 53 | Set as DNS 2 on router |
+| wg-easy | 51821 | http://192.168.12.20:51821 |
+| WireGuard VPN | 51820/UDP | Forward this port on router to 192.168.12.20 |
 | Vaultwarden | 443 | https://192.168.12.20 (via Caddy) |
 
 ## WireGuard Remote Access
 
-WireGuard runs on the **Raspberry Pi 3B+**, not the Proxmox host.
+wg-easy runs on the **Raspberry Pi 3B+** for remote client access.
 
 - Pi listens on port 51820/UDP — forward this port on your router to `192.168.12.20`
-- Clients (laptop, tablet, phone) connect via the WireGuard app
-- Once connected, all service URLs (Proxmox, Jellyfin, Vaultwarden, etc.) work as if on LAN
+- Clients (laptop, Android, Fire TV) import config via wg-easy web UI at `:51821`
+- Once connected, all service URLs work as if on LAN
 
-## Pi-hole DNS (Primary + Secondary)
+> This is separate from the CT-100/CT-101 WireGuard used to protect qBittorrent traffic.
 
-Two Pi-hole instances provide redundant DNS:
+## AdGuard Home DNS (Primary + Replica)
 
-- **Primary**: Raspberry Pi @ `192.168.12.20` — set as DNS 1 on your router
-- **Secondary**: Proxmox LXC @ `192.168.12.10` — set as DNS 2 on your router
+Two AdGuard Home instances provide redundant network-wide ad blocking with zero downtime:
 
-Use [Gravity Sync](https://github.com/vmstan/gravity-sync) to keep blocklists and settings in sync between both instances.
+- **Primary**: CT-102 @ `192.168.12.102` — set as DNS 1 on your router
+- **Replica**: Pi 3B+ @ `192.168.12.20` — set as DNS 2 on your router
+- **Fallback**: `1.1.1.1` — set as DNS 3 on your router (network never dies)
 
-> **Important:** Test that Jellyfin and streaming services still resolve correctly after enabling Pi-hole. Add whitelist entries as needed.
+Sync is handled automatically by `adguardhome-sync` running in CT-102, pushing config to the Pi replica every 5 minutes.
+
+> Test that Jellyfin and streaming services resolve correctly after enabling. Add whitelist entries in AdGuard Home as needed.
 
 ## Vaultwarden
 
 Vaultwarden (self-hosted Bitwarden) runs on the Pi behind Caddy for automatic HTTPS.
 
-- Caddy handles TLS — either via a local self-signed cert or a real domain with Let's Encrypt
+- Caddy handles TLS — local self-signed cert or real domain with Let's Encrypt
 - LAN access: `https://192.168.12.20`
-- Remote access: connect via WireGuard first, then use the LAN URL (no port forwarding needed for Vaultwarden)
+- Remote access: connect via WireGuard first, then use the LAN URL

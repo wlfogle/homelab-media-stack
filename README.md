@@ -5,21 +5,25 @@ A complete self-hosted media center and services platform built on **Proxmox VE*
 ## 🏗️ Architecture
 
 ```
-Desktop PC (Proxmox VE Host @ 192.168.12.10)
-├── LXC: Media Stack (Jellyfin, Sonarr, Radarr, qBittorrent, Overseerr)
-├── LXC: Infrastructure (Traefik, Pi-hole secondary)
-├── LXC: Monitoring (Grafana, Prometheus, Uptime Kuma)
-└── Storage: /mnt/media (movies, shows, music)
+Tiamat — Proxmox VE 9.x (192.168.12.10)
+├── CT-100 (192.168.12.100) — WireGuard VPN server (qBittorrent kill-switch)
+├── CT-101 (192.168.12.101) — Gluetun + TinyProxy (HTTP proxy :8888)
+├── CT-102 (192.168.12.102) — AdGuard Home primary (DNS ad-blocking)
+└── CT-110 (192.168.12.110) — Media Stack
+    ├── Jellyfin, Sonarr, Radarr, Prowlarr, qBittorrent
+    ├── Overseerr, Bazarr, Traefik
+    ├── Homarr (unified dashboard :7575)
+    └── MediaStack Control (container manager :9900)
 
-Raspberry Pi 3B+ (@ 192.168.12.20)
-├── Pi-hole (primary DNS + ad-block)
-├── WireGuard (VPN server)
-└── Vaultwarden (password manager)
+Raspberry Pi 3B+ (192.168.12.20)
+├── AdGuard Home replica (synced from CT-102 every 5 min)
+├── wg-easy (remote access VPN :51820)
+└── Vaultwarden + Caddy (password manager :443)
 
 Client Devices
-├── Fire TV       → Jellyfin app + native paid streaming apps
-├── Tablet        → Media requests (Overseerr) + admin dashboards
-└── Laptop        → Proxmox web UI + full admin access
+├── Fire TV  → Jellyfin + Silk Browser (Overseerr/Homarr) + sideloaded nzb360
+├── Android  → Jellyfin + nzb360 (arr control) + Overseerr + Homarr
+└── Laptop   → Full admin (Proxmox, Homarr, MediaStack Control, SSH)
 ```
 
 ## 📁 Repository Structure
@@ -37,10 +41,11 @@ homelab-media-stack/
 │   └── overseerr/
 ├── infrastructure/       # Core infra services
 │   ├── traefik/
-│   └── pihole/           # Secondary Pi-hole (Proxmox LXC)
+│   ├── adguardhome/      # AdGuard Home (Proxmox CT-102)
+│   └── wireguard-server/ # WireGuard VPN server (CT-100) + Gluetun proxy (CT-101)
 ├── pi/                   # Raspberry Pi 3B+ configuration
-│   ├── pihole/           # Primary Pi-hole
-│   ├── wireguard/
+│   ├── adguardhome/      # AdGuard Home replica
+│   ├── wireguard/        # wg-easy remote access VPN
 │   └── vaultwarden/
 ├── scripts/              # Setup and maintenance scripts
 │   ├── setup-proxmox.sh
@@ -61,12 +66,12 @@ homelab-media-stack/
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 1 | Proxmox install + networking + storage | 🔲 |
-| 2 | Core infrastructure (Traefik, Pi-hole) | 🔲 |
-| 3 | Media stack (Jellyfin, Sonarr, Radarr, qBittorrent) | 🔲 |
-| 4 | Client integration (Fire TV, Tablet, Laptop) | 🔲 |
-| 5 | Pi 3B+ setup (Pi-hole primary, WireGuard, Vaultwarden) | 🔲 |
+| 2 | Core infrastructure (Traefik, AdGuard Home, WireGuard VPN) | 🔲 |
+| 3 | Media stack (Jellyfin, Sonarr, Radarr, qBittorrent, Homarr) | 🔲 |
+| 4 | Client setup (Fire TV, Android, Laptop — nzb360, Overseerr) | 🔲 |
+| 5 | Pi 3B+ setup (AdGuard replica, wg-easy, Vaultwarden) | 🔲 |
 | 5a | Security hardening | 🔲 |
-| 6 | Monitoring (Grafana, Prometheus) | 🔲 |
+| 6 | Monitoring (MediaStack Control, Uptime Kuma) | 🔲 |
 
 ## 🖥️ Hardware
 
