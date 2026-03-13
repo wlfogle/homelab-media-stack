@@ -82,7 +82,7 @@ See [docs/HARDWARE.md](docs/HARDWARE.md) for full specs.
 
 ## 📋 Requirements
 
-- Proxmox VE 8.x
+- Proxmox VE 9.x
 - Docker + Docker Compose (inside LXC containers)
 - Static LAN IP on the server
 - All client devices on the same LAN (or WireGuard for remote)
