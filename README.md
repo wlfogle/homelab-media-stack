@@ -5,14 +5,19 @@ A complete self-hosted media center and services platform built on **Proxmox VE*
 ## 🏗️ Architecture
 
 ```
-Desktop PC (Proxmox VE Host)
-├── LXC: Media Stack (Jellyfin/Plex, Sonarr, Radarr, qBittorrent)
-├── LXC: Infrastructure (Traefik, Pi-hole, WireGuard)
+Desktop PC (Proxmox VE Host @ 192.168.12.10)
+├── LXC: Media Stack (Jellyfin, Sonarr, Radarr, qBittorrent, Overseerr)
+├── LXC: Infrastructure (Traefik, Pi-hole secondary)
 ├── LXC: Monitoring (Grafana, Prometheus, Uptime Kuma)
 └── Storage: /mnt/media (movies, shows, music)
 
+Raspberry Pi 3B+ (@ 192.168.12.20)
+├── Pi-hole (primary DNS + ad-block)
+├── WireGuard (VPN server)
+└── Vaultwarden (password manager)
+
 Client Devices
-├── Fire TV       → Jellyfin/Plex app + native paid streaming apps
+├── Fire TV       → Jellyfin app + native paid streaming apps
 ├── Tablet        → Media requests (Overseerr) + admin dashboards
 └── Laptop        → Proxmox web UI + full admin access
 ```
@@ -32,8 +37,11 @@ homelab-media-stack/
 │   └── overseerr/
 ├── infrastructure/       # Core infra services
 │   ├── traefik/
-│   ├── pihole/
-│   └── wireguard/
+│   └── pihole/           # Secondary Pi-hole (Proxmox LXC)
+├── pi/                   # Raspberry Pi 3B+ configuration
+│   ├── pihole/           # Primary Pi-hole
+│   ├── wireguard/
+│   └── vaultwarden/
 ├── scripts/              # Setup and maintenance scripts
 │   ├── setup-proxmox.sh
 │   ├── deploy-media-stack.sh
@@ -56,7 +64,8 @@ homelab-media-stack/
 | 2 | Core infrastructure (Traefik, Pi-hole) | 🔲 |
 | 3 | Media stack (Jellyfin, Sonarr, Radarr, qBittorrent) | 🔲 |
 | 4 | Client integration (Fire TV, Tablet, Laptop) | 🔲 |
-| 5 | Security hardening + WireGuard VPN | 🔲 |
+| 5 | Pi 3B+ setup (Pi-hole primary, WireGuard, Vaultwarden) | 🔲 |
+| 5a | Security hardening | 🔲 |
 | 6 | Monitoring (Grafana, Prometheus) | 🔲 |
 
 ## 🖥️ Hardware

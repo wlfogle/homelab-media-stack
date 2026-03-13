@@ -28,6 +28,19 @@
 3. **Storage**: Add a dedicated SSD for Proxmox root + container volumes, keep 2TB HDD for media
 4. **Network**: Use wired Ethernet for the server (not Wi-Fi) for streaming stability
 
+## Raspberry Pi 3B+
+
+| Component | Spec |
+|-----------|------|
+| **CPU** | ARM Cortex-A53, 4-core 1.4GHz (64-bit capable, running 32-bit OS) |
+| **RAM** | 1GB LPDDR2 |
+| **Storage** | microSD (class 10 / A1 recommended, 16GB+) |
+| **Networking** | 10/100 Ethernet + 802.11AC Wi-Fi (use wired) |
+| **OS** | Raspberry Pi OS Lite (32-bit) |
+| **Services** | Pi-hole (primary), WireGuard, Vaultwarden |
+
+> Vaultwarden requires HTTPS. Use Caddy as a reverse proxy on the Pi for automatic TLS.
+
 ## Client Devices
 
 | Device | Role |
