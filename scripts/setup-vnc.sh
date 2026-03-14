@@ -49,8 +49,16 @@ apt-get install -y \
 # ── Set VNC password ─────────────────────────────────────────────────────────
 echo "[2/6] Setting VNC password..."
 mkdir -p /root/.vnc
-printf '%s\n%s\n\n' "$VNC_PASS" "$VNC_PASS" | vncpasswd /root/.vnc/passwd
-chmod 600 /root/.vnc/passwd
+# vncpasswd removed in TigerVNC 1.15 — generate passwd file via Python3 DES
+python3 - "$VNC_PASS" <<'PYEOF'
+import sys, subprocess, os
+p = (sys.argv[1].encode() + b'\x00'*8)[:8]
+key = bytes(int('{:08b}'.format(b)[::-1],2) for b in p)
+out = subprocess.run(['openssl','enc','-des-ecb','-nosalt','-nopad','-K',key.hex()],
+    input=b'\x00'*8, capture_output=True, check=True).stdout[:8]
+open('/root/.vnc/passwd','wb').write(out)
+os.chmod('/root/.vnc/passwd', 0o600)
+PYEOF
 unset VNC_PASS VNC_PASS2
 
 # ── Write xstartup ───────────────────────────────────────────────────────────
@@ -93,9 +101,9 @@ Type=forking
 User=root
 WorkingDirectory=/root
 PIDFile=/root/.vnc/%H%i.pid
-ExecStartPre=/usr/bin/vncserver -kill %i > /dev/null 2>&1 || true
-ExecStart=/usr/bin/vncserver %i -depth 24 -geometry 1920x1080 -localhost no -alwaysshared
-ExecStop=/usr/bin/vncserver -kill %i
+ExecStartPre=-/usr/bin/tigervncserver -kill %i
+ExecStart=/usr/bin/tigervncserver %i -depth 24 -geometry 1920x1080 -localhost no -alwaysshared
+ExecStop=/usr/bin/tigervncserver -kill %i
 Restart=on-failure
 RestartSec=5
 
