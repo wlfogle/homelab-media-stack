@@ -94,13 +94,13 @@ ok "firstrun.sh copied to boot partition"
 # Pi OS Bookworm uses cmdline.txt to trigger firstrun.sh
 CMDLINE="$BOOT/cmdline.txt"
 if [ -f "$CMDLINE" ]; then
-  if ! grep -q "firstrun" "$CMDLINE"; then
-    # Append systemd.run to cmdline (must stay on one line)
-    sed -i 's|$| systemd.run=/boot/firmware/firstrun.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target|' "$CMDLINE"
-    ok "cmdline.txt updated to run firstrun.sh on boot"
-  else
-    ok "cmdline.txt already has firstrun hook"
-  fi
+  # Remove any existing firstrun kernel-command-line hook then add a single clean one
+  sed -i 's# systemd.run=/boot/firmware/firstrun.sh##g' "$CMDLINE"
+  sed -i 's# systemd.run_success_action=reboot##g' "$CMDLINE"
+  sed -i 's# systemd.unit=kernel-command-line.target##g' "$CMDLINE"
+  # Append systemd.run hook (must stay on one line)
+  sed -i 's|$| systemd.run=/boot/firmware/firstrun.sh systemd.run_success_action=reboot systemd.unit=kernel-command-line.target|' "$CMDLINE"
+  ok "cmdline.txt updated to run firstrun.sh once on first boot"
 fi
 
 # ── 6. WiFi (wpa_supplicant.conf) ─────────────────────────────────────────────

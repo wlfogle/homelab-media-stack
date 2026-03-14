@@ -16,6 +16,24 @@ set -e
 exec > /var/log/firstrun.log 2>&1
 echo "[firstrun] Started: $(date)"
 
+DONE_MARKER="/var/lib/homelab-firstrun.done"
+if [ -f "$DONE_MARKER" ]; then
+  echo "[firstrun] Already completed; exiting."
+  exit 0
+fi
+
+cleanup_firstrun_hook() {
+  for CMDLINE in /boot/firmware/cmdline.txt /boot/cmdline.txt; do
+    if [ -f "$CMDLINE" ]; then
+      sed -i 's# systemd.run=/boot/firmware/firstrun.sh##g' "$CMDLINE" || true
+      sed -i 's# systemd.run_success_action=reboot##g' "$CMDLINE" || true
+      sed -i 's# systemd.unit=kernel-command-line.target##g' "$CMDLINE" || true
+    fi
+  done
+  rm -f /boot/firmware/firstrun.sh /boot/firstrun.sh || true
+}
+trap cleanup_firstrun_hook EXIT
+
 # ── Hostname ─────────────────────────────────────────────────────────────────
 hostnamectl set-hostname ziggy
 echo "ziggy" > /etc/hostname
@@ -27,6 +45,7 @@ timedatectl set-timezone America/New_York
 echo "[firstrun] Timezone: America/New_York"
 
 # ── Static IP 192.168.12.20 via dhcpcd ───────────────────────────────────────
+if ! grep -q "Ziggy static LAN IP" /etc/dhcpcd.conf; then
 cat >> /etc/dhcpcd.conf <<'DHCP'
 
 # Ziggy static LAN IP
@@ -35,6 +54,7 @@ static ip_address=192.168.12.20/24
 static routers=192.168.12.1
 static domain_name_servers=192.168.12.1 1.1.1.1
 DHCP
+fi
 echo "[firstrun] Static IP configured: 192.168.12.20"
 
 # ── SSH: enable + inject authorized key ──────────────────────────────────────
@@ -75,8 +95,12 @@ echo "[firstrun] Running pi/setup-pi.sh..."
 bash /opt/homelab-media-stack/pi/setup-pi.sh >> /var/log/firstrun.log 2>&1
 
 # ── Cleanup ──────────────────────────────────────────────────────────────────
-# Remove this script from rc.local (added by setup-sd.sh)
-sed -i '/firstrun\.sh/d' /etc/rc.local
+# Remove kernel cmdline hook + injected script (also handled by EXIT trap)
+cleanup_firstrun_hook
+
+# One-shot marker
+mkdir -p /var/lib
+touch "$DONE_MARKER"
 
 echo "[firstrun] Complete: $(date)"
 echo "[firstrun] Log: /var/log/firstrun.log"

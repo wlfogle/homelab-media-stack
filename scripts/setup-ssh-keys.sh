@@ -20,7 +20,7 @@ PUBKEY="$HOME/.ssh/id_ed25519.pub"
 PRIVKEY="$HOME/.ssh/id_ed25519"
 
 # ── Hosts ────────────────────────────────────────────────────────────────────
-PROXMOX_IP="192.168.12.50"
+PROXMOX_IP="192.168.12.242"
 PI_IP="192.168.12.20"
 
 # Containers (directly reachable on LAN once running)
