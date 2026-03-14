@@ -12,6 +12,41 @@
 # ============================================================
 set -e
 
+# ── Collect secrets up front ─────────────────────────────────────────────────
+echo ""
+echo "========================================================="
+echo "  Tiamat Media Stack — Pre-flight Configuration"
+echo "========================================================="
+echo ""
+
+# Plex claim token (get from https://plex.tv/claim — expires in 4 min)
+if [ -z "$PLEX_CLAIM" ]; then
+  echo "Get your Plex claim token now: https://plex.tv/claim"
+  read -rp "PLEX_CLAIM token: " PLEX_CLAIM
+fi
+
+# DuckDNS token
+if [ -z "$DUCKDNS_TOKEN" ]; then
+  echo ""
+  echo "Get your DuckDNS token from: https://www.duckdns.org"
+  read -rp "DuckDNS token: " DUCKDNS_TOKEN
+fi
+
+# Timezone
+if [ -z "$TZ" ]; then
+  read -rp "Timezone [America/New_York]: " TZ
+  TZ=${TZ:-America/New_York}
+fi
+
+# Email (for Let's Encrypt / alerts)
+if [ -z "$ACME_EMAIL" ]; then
+  read -rp "Email address (for alerts/TLS): " ACME_EMAIL
+fi
+
+echo ""
+echo "Config collected. Starting deployment..."
+echo ""
+
 DEBIAN_TEMPLATE=$(pveam list local | grep debian-12 | awk '{print $1}' | head -1)
 if [ -z "$DEBIAN_TEMPLATE" ]; then
   echo "==> Downloading Debian 12 template..."
@@ -121,8 +156,25 @@ pct exec 110 -- bash -c "apt update && apt install -y curl git && curl -fsSL htt
 echo "==> Cloning repo into CT-110..."
 pct exec 110 -- bash -c "git clone https://github.com/wlfogle/homelab-media-stack.git /opt/homelab-media-stack"
 
+echo "==> Writing .env with secrets into CT-110..."
+pct exec 110 -- bash -c "cp /opt/homelab-media-stack/media-stack/.env.example /opt/homelab-media-stack/media-stack/.env"
+
+# Inject all collected secrets + config into the .env
+pct exec 110 -- bash -c "sed -i \
+  -e 's|^PLEX_CLAIM=.*|PLEX_CLAIM=${PLEX_CLAIM}|' \
+  -e 's|^DUCKDNS_TOKEN=.*|DUCKDNS_TOKEN=${DUCKDNS_TOKEN}|' \
+  -e 's|^TZ=.*|TZ=${TZ}|' \
+  -e 's|^ACME_EMAIL=.*|ACME_EMAIL=${ACME_EMAIL}|' \
+  /opt/homelab-media-stack/media-stack/.env"
+
 echo "==> Deploying media stack in CT-110..."
-pct exec 110 -- bash -c "cp /opt/homelab-media-stack/media-stack/.env.example /opt/homelab-media-stack/media-stack/.env && cd /opt/homelab-media-stack/media-stack && docker compose up -d"
+pct exec 110 -- bash -c "cd /opt/homelab-media-stack/media-stack && docker compose up -d"
+
+echo "==> Setting up DuckDNS dynamic DNS..."
+pct exec 110 -- bash -c "
+  DUCKDNS_TOKEN='${DUCKDNS_TOKEN}' \
+  bash /opt/homelab-media-stack/scripts/setup-duckdns.sh
+"
 
 echo "==> Setting up CT-150 (Fire TV ADB Controller)..."
 pct exec 150 -- bash -c "
@@ -177,8 +229,10 @@ echo "  Tautulli          http://192.168.12.110:8181"
 echo "  AdGuard Home      http://192.168.12.102:3000"
 echo ""
 echo "NEXT STEPS:"
-echo "  1. Edit /opt/homelab-media-stack/media-stack/.env in CT-110 (set PLEX_CLAIM, etc)"
-echo "  2. Run infrastructure/wireguard-server/setup-wg-server.sh in CT-100"
-echo "  3. Run scripts/setup-duckdns.sh for DuckDNS dynamic DNS"
-echo "  4. See docs/INDEXERS.md to configure Sonarr/Radarr indexers"
-echo "  5. Sideload android-app/ to Fire TVs: ./android-app/build-app.sh install-firetv"
+echo "  1. Run infrastructure/wireguard-server/setup-wg-server.sh in CT-100"
+echo "  2. See docs/INDEXERS.md to configure Sonarr/Radarr indexers"
+echo "  3. Sideload android-app/ to Fire TVs: ./android-app/build-app.sh install-firetv"
+echo "  4. Set up Ziggy (Pi 3B+) — see pi/imager-config/README.md"
+echo ""
+echo "All secrets already injected into CT-110 .env:"  
+echo "  PLEX_CLAIM, DUCKDNS_TOKEN, TZ, ACME_EMAIL"
