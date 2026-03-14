@@ -6,8 +6,8 @@
 set -e
 
 echo "==> Disabling enterprise repo (requires subscription)..."
-sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list
-sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/ceph.list 2>/dev/null || true
+[ -f /etc/apt/sources.list.d/pve-enterprise.list ] && sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list || true
+[ -f /etc/apt/sources.list.d/ceph.list ] && sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/ceph.list || true
 
 echo "==> Adding free/community repo..."
 echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" \
