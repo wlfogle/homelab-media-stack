@@ -8,8 +8,8 @@ All indexers below are torrent-based and routed through the WireGuard VPN (CT-10
 ## Step 1 — Connect Prowlarr to Sonarr & Radarr
 
 1. Open Prowlarr → **Settings → Apps**
-2. Add **Sonarr**: `http://192.168.12.110:8989` | API Key from Sonarr → Settings → General
-3. Add **Radarr**: `http://192.168.12.110:7878` | API Key from Radarr → Settings → General
+2. Add **Sonarr**: `http://192.168.12.214:8989` | API Key from Sonarr → Settings → General
+3. Add **Radarr**: `http://192.168.12.215:7878` | API Key from Radarr → Settings → General
 4. Click **Sync App Indexers** — Prowlarr will push all configured indexers automatically
 
 ---
@@ -96,15 +96,15 @@ Go to **Sonarr → Settings → Quality Profiles**
 
 ### In Prowlarr/Sonarr/Radarr → Settings → Download Clients
 
-- **Host**: `192.168.12.110`
-- **Port**: `9090`
+- **Host**: `192.168.12.212`
+- **Port**: `8080`
 - **Username**: `admin`
 - **Password**: (set in qBittorrent WebUI on first run)
 - **Category**: `sonarr` or `radarr` (keeps downloads organized)
 
 ### qBittorrent VPN kill-switch
 
-qBittorrent in CT-110 is configured to proxy all traffic through CT-101 (TinyProxy → WireGuard):
+qBittorrent in CT-212 is configured to proxy all traffic through CT-101 (TinyProxy → WireGuard):
 
 ```
 Settings → Connection → Proxy Server

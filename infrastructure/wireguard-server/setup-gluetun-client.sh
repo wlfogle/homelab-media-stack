@@ -1,6 +1,6 @@
 #!/bin/sh
 # ============================================================
-# Gluetun Client Setup — CT-101 (Alpine Linux, PRIVILEGED)
+# WireGuard Client + TinyProxy Setup — CT-101 (Alpine Linux, PRIVILEGED)
 # Connects to WireGuard server in CT-100
 # Runs TinyProxy so media services route through VPN
 # Run inside Proxmox LXC container 101
@@ -11,8 +11,8 @@ echo "==> Installing WireGuard + TinyProxy..."
 apk update && apk add wireguard-tools tinyproxy iptables
 
 echo "==> Copying client WireGuard config..."
-echo "    Paste the contents of /etc/wireguard/clients/ct101-gluetun.conf from CT-100:"
-echo "    (copy it via: pct exec 100 -- cat /etc/wireguard/clients/ct101-gluetun.conf)"
+echo "    Paste the contents of /etc/wireguard/clients/ct101-wg-proxy.conf from CT-100:"
+echo "    (copy it via: pct exec 100 -- cat /etc/wireguard/clients/ct101-wg-proxy.conf)"
 echo ""
 echo "    Then save it to /etc/wireguard/wg0.conf on this container and re-run this script."
 echo ""
@@ -58,7 +58,7 @@ rc-service tinyproxy start
 rc-update add tinyproxy default
 
 echo ""
-echo "=== CT-101 Gluetun/Proxy Setup Complete ==="
+echo "=== CT-101 WireGuard Client + TinyProxy Setup Complete ==="
 echo ""
 echo "HTTP Proxy available at: 192.168.12.101:8888"
 echo ""

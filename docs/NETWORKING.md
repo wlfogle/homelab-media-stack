@@ -1,22 +1,19 @@
 # Networking
 
 ## LAN Layout
-
 ```
 Router (192.168.12.1)
-├── Desktop Server (Proxmox)  → 192.168.12.10  (static)
-├── Tiamat (current Windows)  → 192.168.12.242 (pre-Proxmox)
-├── Ziggy (Raspberry Pi 3B+)          → 192.168.12.20  (static)
+├── Tiamat (Proxmox VE)       → 192.168.12.242 (static)
+├── Ziggy (Raspberry Pi 3B+)  → 192.168.12.20 (static)
+├── Laptop                    → DHCP
 ├── Fire TV                   → DHCP
-├── Tablet                    → DHCP
-└── Laptop                    → DHCP
+└── Tablet / phones           → DHCP
 ```
 
-## Proxmox Network Bridge
+## Proxmox Bridge
+Proxmox host networking is bridged through `vmbr0` so all CTs/VMs get LAN access.
 
-Proxmox uses a Linux bridge (`vmbr0`) to give LXC containers network access.
-
-`/etc/network/interfaces` on Proxmox host:
+`/etc/network/interfaces`:
 ```
 auto lo
 iface lo inet loopback
@@ -26,83 +23,77 @@ iface enp3s0 inet manual
 
 auto vmbr0
 iface vmbr0 inet static
-    address 192.168.12.10/24
+    address 192.168.12.242/24
     gateway 192.168.12.1
     bridge-ports enp3s0
     bridge-stp off
     bridge-fd 0
-
-dns-nameservers 192.168.12.1
+    dns-nameservers 192.168.12.1
 ```
 
-> Adjust `enp3s0` to match your actual NIC name (check with `ip link`).
+## Core Service Map
 
-## Service Port Map
+### Proxmox host
+| Service | URL |
+|---|---|
+| Proxmox UI | `https://192.168.12.242:8006` |
 
-### Proxmox Host (192.168.12.10)
+### Infrastructure CTs
+| CT | Purpose | URL / Port |
+|---|---|---|
+| CT-100 `wireguard` | WireGuard server | `:51820/udp` |
+| CT-101 `wg-proxy` | WireGuard client + TinyProxy | `http://192.168.12.101:8888` |
+| CT-102 `flaresolverr` | Cloudflare bypass | `http://192.168.12.102:8191` |
+| CT-103 `traefik` | Reverse proxy | `:80`, `:443`, `:8080` |
+| CT-104 `vaultwarden` | Password manager backend | `http://192.168.12.104` |
+| CT-105 `valkey` | Redis-compatible cache | `:6379` |
+| CT-106 `postgresql` | Database | `:5432` |
+| CT-107 `authentik` | SSO | `http://192.168.12.107:9000` |
 
-| Service | Port | URL |
-|---------|------|-----|
-| Proxmox Web UI | 8006 | https://192.168.12.10:8006 |
+### Download stack (static)
+| Service | URL |
+|---|---|
+| Prowlarr (CT-210) | `http://192.168.12.210:9696` |
+| Jackett (CT-211) | `http://192.168.12.211:9117` |
+| qBittorrent (CT-212) | `http://192.168.12.212:8080` |
+| Sonarr (CT-214) | `http://192.168.12.214:8989` |
+| Radarr (CT-215) | `http://192.168.12.215:7878` |
+| Readarr (CT-217) | `http://192.168.12.217:8787` |
+| Whisparr (CT-219) | `http://192.168.12.219:6969` |
+| Sonarr Extended (CT-220) | `http://192.168.12.220:8989` |
+| Autobrr (CT-223) | `http://192.168.12.223:7474` |
+| Deluge (CT-224) | `http://192.168.12.224:8112` |
 
-### CT-102 — AdGuard Home (192.168.12.102)
+### Media servers
+| Service | URL |
+|---|---|
+| Plex (CT-230) | `http://192.168.12.230:32400/web` |
+| Jellyfin (CT-231) | `http://192.168.12.231:8096` |
 
-| Service | Port | URL |
-|---------|------|-----|
-| AdGuard Home Web UI | 80 | http://192.168.12.102 |
-| DNS | 53 | Set as DNS 1 on router |
+## VPN Architecture (kill-switch path)
 
-### CT-110 — Media Stack (192.168.12.110)
+CT-101 is not Gluetun software. It runs:
+- `wireguard-tools` client to CT-100
+- `tinyproxy` on port `8888`
 
-| Service | Port | URL |
-|---------|------|-----|
-| **Homarr** (unified dashboard) | 7575 | http://192.168.12.110:7575 |
-| **MediaStack Control** | 9900 | http://192.168.12.110:9900 |
-| Jellyfin | 8096 | http://192.168.12.110:8096 |
-| Overseerr | 5055 | http://192.168.12.110:5055 |
-| Sonarr | 8989 | http://192.168.12.110:8989 |
-| Radarr | 7878 | http://192.168.12.110:7878 |
-| Prowlarr | 9696 | http://192.168.12.110:9696 |
-| qBittorrent | 9090 | http://192.168.12.110:9090 |
-| Bazarr | 6767 | http://192.168.12.110:6767 |
-| Traefik Dashboard | 8080 | http://192.168.12.110:8080 |
+Traffic flow:
+```
+qBittorrent/Prowlarr -> 192.168.12.101:8888 (TinyProxy)
+                     -> WireGuard tunnel (CT-101 -> CT-100)
+                     -> NAT on CT-100
+                     -> Internet
+```
 
-### Ziggy (Raspberry Pi 3B+) (192.168.12.20)
+If WG tunnel drops, proxy path breaks and downloads fail closed.
 
-| Service | Port | URL |
-|---------|------|-----|
-| AdGuard Home replica | 80 | http://192.168.12.20 |
-| DNS replica | 53 | Set as DNS 2 on router |
-| wg-easy | 51821 | http://192.168.12.20:51821 |
-| WireGuard VPN | 51820/UDP | Forward this port on router to 192.168.12.20 |
-| Vaultwarden | 443 | https://192.168.12.20 (via Caddy) |
+## DNS / Remote Access on Ziggy
 
-## WireGuard Remote Access
+Ziggy (`192.168.12.20`) runs:
+- AdGuard Home (primary DNS): `:53`, setup UI `:3000`
+- wg-easy (remote VPN mgmt): `http://192.168.12.20:51821`
+- WireGuard tunnel endpoint: `:51820/udp`
+- Vaultwarden behind Caddy: `https://192.168.12.20`
 
-wg-easy runs on the **Ziggy (Raspberry Pi 3B+)** for remote client access.
-
-- Pi listens on port 51820/UDP — forward this port on your router to `192.168.12.20`
-- Clients (laptop, Android, Fire TV) import config via wg-easy web UI at `:51821`
-- Once connected, all service URLs work as if on LAN
-
-> This is separate from the CT-100/CT-101 WireGuard used to protect qBittorrent traffic.
-
-## AdGuard Home DNS (Primary + Replica)
-
-Two AdGuard Home instances provide redundant network-wide ad blocking with zero downtime:
-
-- **Primary**: CT-102 @ `192.168.12.102` — set as DNS 1 on your router
-- **Replica**: Pi 3B+ @ `192.168.12.20` — set as DNS 2 on your router
-- **Fallback**: `1.1.1.1` — set as DNS 3 on your router (network never dies)
-
-Sync is handled automatically by `adguardhome-sync` running in CT-102, pushing config to the Pi replica every 5 minutes.
-
-> Test that Jellyfin and streaming services resolve correctly after enabling. Add whitelist entries in AdGuard Home as needed.
-
-## Vaultwarden
-
-Vaultwarden (self-hosted Bitwarden) runs on the Pi behind Caddy for automatic HTTPS.
-
-- Caddy handles TLS — local self-signed cert or real domain with Let's Encrypt
-- LAN access: `https://192.168.12.20`
-- Remote access: connect via WireGuard first, then use the LAN URL
+Router DNS recommendation:
+1. `192.168.12.20`
+2. `1.1.1.1`

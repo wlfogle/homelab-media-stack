@@ -26,13 +26,13 @@ lxc.mount.entry: /dev/net dev/net none bind,create=dir
 
 ---
 
-## CT-101: Gluetun Client + TinyProxy
+## CT-101: WireGuard Client + TinyProxy
 
 > Must be PRIVILEGED with TUN device access
 
 ```bash
 pct create 101 local:vztmpl/alpine-3.19-default_20240207_amd64.tar.xz \
-  --hostname gluetun-proxy \
+  --hostname wg-proxy \
   --memory 256 \
   --cores 1 \
   --net0 name=eth0,bridge=vmbr0,ip=192.168.12.101/24,gw=192.168.12.1 \
@@ -58,7 +58,7 @@ lxc.mount.auto: proc:rw sys:rw
 
 1. Create and start CT-100
 2. `pct exec 100 -- sh` then run `setup-wg-server.sh`
-3. Copy client config: `pct exec 100 -- cat /etc/wireguard/clients/ct101-gluetun.conf`
+3. Copy client config: `pct exec 100 -- cat /etc/wireguard/clients/ct101-wg-proxy.conf`
 4. Create and start CT-101
 5. `pct exec 101 -- sh`, save client config to `/etc/wireguard/wg0.conf`
 6. Run `setup-gluetun-client.sh` in CT-101

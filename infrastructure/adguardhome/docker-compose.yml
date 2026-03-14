@@ -1,7 +1,7 @@
 ---
 # AdGuard Home — Network-wide ad blocker
-# Primary instance on Proxmox LXC (192.168.12.10)
-# Replica on Pi 3B+ (192.168.12.20) via adguardhome-sync
+# Primary runtime is on Ziggy Pi (192.168.12.20)
+# This compose remains for optional Proxmox-hosted AdGuard deployment
 
 services:
   adguardhome:

@@ -1,6 +1,6 @@
 # Hardware Documentation
 
-## Server — CyberPowerPC C Series ET8890-37125 (Tiamat @ 192.168.12.50 post-Proxmox)
+## Server — CyberPowerPC C Series ET8890-37125 (Tiamat @ 192.168.12.242 post-Proxmox)
 
 > Specs confirmed via SSH + PowerShell query on 2026-03-13
 

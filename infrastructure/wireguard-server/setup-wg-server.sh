@@ -21,7 +21,7 @@ chmod 600 /etc/wireguard/server_private.key
 SERVER_PRIVATE=$(cat /etc/wireguard/server_private.key)
 SERVER_PUBLIC=$(cat /etc/wireguard/server_public.key)
 
-echo "==> Generating client keys (for CT-101 Gluetun)..."
+echo "==> Generating client keys (for CT-101 WG proxy)..."
 wg genkey | tee /etc/wireguard/client_private.key | wg pubkey > /etc/wireguard/client_public.key
 chmod 600 /etc/wireguard/client_private.key
 
@@ -41,7 +41,7 @@ SaveConfig = false
 PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ${IFACE} -j MASQUERADE
 
-# CT-101 Gluetun Client
+# CT-101 WireGuard client + TinyProxy
 [Peer]
 PublicKey = ${CLIENT_PUBLIC}
 AllowedIPs = 10.0.0.2/32
@@ -52,11 +52,11 @@ chmod 600 /etc/wireguard/wg0.conf
 
 echo "==> Writing client config for CT-101..."
 mkdir -p /etc/wireguard/clients
-cat > /etc/wireguard/clients/ct101-gluetun.conf <<EOF
+cat > /etc/wireguard/clients/ct101-wg-proxy.conf <<EOF
 [Interface]
 PrivateKey = ${CLIENT_PRIVATE}
 Address = 10.0.0.2/32
-DNS = 192.168.12.10
+DNS = 192.168.12.242
 
 [Peer]
 PublicKey = ${SERVER_PUBLIC}
@@ -72,6 +72,6 @@ rc-update add wg-quick.wg0 default
 echo ""
 echo "=== WireGuard Server Setup Complete ==="
 echo "Server Public Key: ${SERVER_PUBLIC}"
-echo "Client config saved to: /etc/wireguard/clients/ct101-gluetun.conf"
+echo "Client config saved to: /etc/wireguard/clients/ct101-wg-proxy.conf"
 echo ""
-echo "Next: Copy ct101-gluetun.conf to CT-101 and run setup-gluetun-client.sh"
+echo "Next: Copy ct101-wg-proxy.conf to CT-101 and run setup-gluetun-client.sh"

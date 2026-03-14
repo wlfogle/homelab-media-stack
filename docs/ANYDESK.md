@@ -12,7 +12,7 @@ Anywhere in the world
         ▼
   AnyDesk Relay Servers  (AnyDesk's cloud, punches through CGNAT)
         │
-        ├──▶  Tiamat (Proxmox + XFCE)   192.168.12.50
+        ├──▶  Tiamat (Proxmox + XFCE)   192.168.12.242
         ├──▶  Ziggy  (Pi 3B+ + XFCE)    192.168.12.20
         └──▶  Laptop (Pop!_OS)           192.168.12.x
 ```
@@ -29,7 +29,7 @@ Connect by entering the ID + unattended password — no IP needed.
 Run on the Proxmox host **after** Proxmox is installed:
 
 ```bash
-ssh root@192.168.12.50
+ssh root@192.168.12.242
 git clone https://github.com/wlfogle/homelab-media-stack.git /opt/homelab-media-stack
 bash /opt/homelab-media-stack/scripts/setup-anydesk.sh
 ```
@@ -41,7 +41,7 @@ The script:
 - Prompts you to set an unattended access password
 - Prints your Tiamat AnyDesk ID
 
-**Note:** XFCE runs alongside Proxmox. The Proxmox web UI at `https://192.168.12.50:8006`
+**Note:** XFCE runs alongside Proxmox. The Proxmox web UI at `https://192.168.12.242:8006`
 is unaffected. Once connected via AnyDesk, open Firefox on the XFCE desktop
 and navigate to `https://localhost:8006` for full Proxmox management.
 
