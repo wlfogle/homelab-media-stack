@@ -39,9 +39,26 @@ ssh pi@192.168.12.20
 ```
 
 ## Passwordless SSH Setup
+
+Run once after Proxmox is installed and Pi is up:
 ```bash
-ssh-copy-id root@192.168.12.50
-ssh-copy-id pi@192.168.12.20
+chmod +x /opt/homelab-media-stack/scripts/setup-ssh-keys.sh
+/opt/homelab-media-stack/scripts/setup-ssh-keys.sh
+```
+
+This pushes your key to every system and writes `~/.ssh/config` with aliases.
+The config is already pre-applied on this laptop.
+
+## SSH Aliases (after setup)
+
+```bash
+ssh tiamat        # Proxmox host (root@192.168.12.50)
+ssh pi            # Raspberry Pi 3B+ (pi@192.168.12.20)
+ssh ct-media      # CT-110 media stack
+ssh ct-adguard    # CT-102 AdGuard Home
+ssh ct-wg         # CT-100 WireGuard server
+ssh ct-proxy      # CT-101 Gluetun proxy
+ssh ct-firetv     # CT-150 Fire TV controller
 ```
 
 ## Useful Commands
