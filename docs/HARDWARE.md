@@ -1,6 +1,6 @@
 # Hardware Documentation
 
-## Server — CyberPowerPC C Series ET8890-37125 (Tiamat @ 192.168.12.10 post-Proxmox)
+## Server — CyberPowerPC C Series ET8890-37125 (Tiamat @ 192.168.12.50 post-Proxmox)
 
 > Specs confirmed via SSH + PowerShell query on 2026-03-13
 
@@ -41,13 +41,29 @@
 
 > Vaultwarden requires HTTPS. Use Caddy as a reverse proxy on the Pi for automatic TLS.
 
+## Laptop — Primary Admin / Dev Machine
+
+| Component | Spec |
+|-----------|------|
+| **OS** | Pop!_OS 22.04 LTS (KDE Plasma 5.24.7) |
+| **Kernel** | 6.17.9-76061709-generic (64-bit) |
+| **CPU** | Intel Core i9-13900HX, 24-core (8P+16E) / 32-thread, 13th Gen |
+| **RAM** | 62.5 GB |
+| **GPU (integrated)** | Intel Arc / Intel Xe Graphics (Mesa) |
+| **GPU (discrete)** | NVIDIA GeForce RTX 4080 (laptop) |
+| **Graphics platform** | X11 |
+| **Role** | Primary admin workstation, repo dev, Proxmox SSH, Android APK builds |
+
+> NVIDIA RTX 4080 available for CUDA workloads — useful for AI/transcoding experiments.
+> Android APK builds run here (Java 17 + Android SDK).
+
 ## Client Devices
 
 | Device | Role |
 |--------|------|
 | 2x Fire TV + Fire TV Cube | Jellyfin + Plex, Homarr/Overseerr via Silk Browser, nzb360 sideload, TiamatsStack APK |
 | Android (tablet/phone) | Jellyfin, Plex, nzb360, Bitwarden, WireGuard |
-| Laptop | Proxmox admin, Homarr, MediaStack Control, SSH |
+| Laptop (i9-13900HX) | Proxmox admin, Homarr, MediaStack Control, SSH, APK builds |
 
 ## Network Requirements
 
