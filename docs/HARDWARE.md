@@ -32,7 +32,7 @@
 
 | Component | Spec |
 |-----------|------|
-| **CPU** | ARM Cortex-A53, 4-core 1.4GHz (64-bit capable, running 32-bit OS) |
+| **CPU** | ARM Cortex-A53, 4-core 1.4GHz (64-bit) |
 | **RAM** | 1GB LPDDR2 |
 | **Storage** | microSD (class 10 / A1 recommended, 16GB+) |
 | **Networking** | 10/100 Ethernet + 802.11AC Wi-Fi (use wired) |
