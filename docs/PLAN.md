@@ -24,7 +24,7 @@ Tiamat — Proxmox VE 9.x (192.168.12.10)
     ├── Overseerr    :5055
     └── Bazarr       :6767
 
-Raspberry Pi 3B+ (192.168.12.20)
+Ziggy (Raspberry Pi 3B+) (192.168.12.20)
 ├── AdGuard Home replica (synced from CT-102)
 ├── wg-easy :51821 — remote access VPN for clients
 └── Vaultwarden + Caddy :443 — password manager
@@ -77,10 +77,10 @@ Client Devices
     - Prowlarr: Settings → General → Proxy → HTTP → 192.168.12.101:8888
     - Overseerr: connect to Jellyfin + Sonarr + Radarr
 
-### Phase 6 — Raspberry Pi
+### Phase 6 — Ziggy (Raspberry Pi 3B+)
 18. Image SD card with Raspberry Pi OS Lite 64-bit (Bookworm)
     - Enable SSH, set hostname `pi`, connect ethernet
-19. SSH in: `ssh pi@192.168.12.20` (or find IP via router)
+19. SSH in: `ssh ziggy` (or find IP via router)
 20. `sudo bash /path/to/setup-pi.sh` (or clone repo first)
 21. Configure wg-easy: set `WG_HOST` to your public IP or DDNS
 22. Forward port 51820/UDP on router to 192.168.12.20

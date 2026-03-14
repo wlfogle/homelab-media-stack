@@ -58,9 +58,9 @@ copy_key() {
 log "=== Step 1: Proxmox host (tiamat @ $PROXMOX_IP) ==="
 copy_key root "$PROXMOX_IP" "Tiamat (Proxmox)"
 
-# ── 2. Raspberry Pi ──────────────────────────────────────────────────────────
-log "=== Step 2: Raspberry Pi @ $PI_IP ==="
-copy_key pi "$PI_IP" "Raspberry Pi 3B+"
+# ── 2. Ziggy (Raspberry Pi 3B+) ──────────────────────────────────────────────────────────
+log "=== Step 2: Ziggy (Raspberry Pi 3B+) @ $PI_IP ==="
+copy_key pi "$PI_IP" "Ziggy (Raspberry Pi 3B+)"
 
 # ── 3. LXC Containers (direct LAN) ──────────────────────────────────────────
 log "=== Step 3: LXC containers ==="
@@ -120,7 +120,7 @@ Host tiamat
     ServerAliveInterval 60
     ServerAliveCountMax 3
 
-Host pi
+Host ziggy pi
     HostName $PI_IP
     User pi
     IdentityFile $PRIVKEY
@@ -166,7 +166,7 @@ echo "================================================="
 echo ""
 echo "Test connections:"
 echo "  ssh tiamat          # Proxmox host"
-echo "  ssh pi              # Raspberry Pi 3B+"
+echo "  ssh ziggy              # Ziggy (Raspberry Pi 3B+)"
 echo "  ssh ct-media        # CT-110 media stack"
 echo "  ssh ct-adguard      # CT-102 AdGuard Home"
 echo "  ssh ct-wg           # CT-100 WireGuard server"

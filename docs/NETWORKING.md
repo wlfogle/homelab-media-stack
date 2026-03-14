@@ -6,7 +6,7 @@
 Router (192.168.12.1)
 ├── Desktop Server (Proxmox)  → 192.168.12.10  (static)
 ├── Tiamat (current Windows)  → 192.168.12.242 (pre-Proxmox)
-├── Raspberry Pi 3B+          → 192.168.12.20  (static)
+├── Ziggy (Raspberry Pi 3B+)          → 192.168.12.20  (static)
 ├── Fire TV                   → DHCP
 ├── Tablet                    → DHCP
 └── Laptop                    → DHCP
@@ -67,7 +67,7 @@ dns-nameservers 192.168.12.1
 | Bazarr | 6767 | http://192.168.12.110:6767 |
 | Traefik Dashboard | 8080 | http://192.168.12.110:8080 |
 
-### Raspberry Pi 3B+ (192.168.12.20)
+### Ziggy (Raspberry Pi 3B+) (192.168.12.20)
 
 | Service | Port | URL |
 |---------|------|-----|
@@ -79,7 +79,7 @@ dns-nameservers 192.168.12.1
 
 ## WireGuard Remote Access
 
-wg-easy runs on the **Raspberry Pi 3B+** for remote client access.
+wg-easy runs on the **Ziggy (Raspberry Pi 3B+)** for remote client access.
 
 - Pi listens on port 51820/UDP — forward this port on your router to `192.168.12.20`
 - Clients (laptop, Android, Fire TV) import config via wg-easy web UI at `:51821`

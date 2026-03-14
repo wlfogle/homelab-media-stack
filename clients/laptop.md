@@ -34,8 +34,8 @@ ssh root@192.168.12.50 "pct exec 100 -- sh"    # WireGuard server
 ssh root@192.168.12.50 "pct exec 101 -- sh"    # Gluetun proxy
 ssh root@192.168.12.50 "pct exec 150 -- bash"  # Fire TV controller
 
-# Raspberry Pi
-ssh pi@192.168.12.20
+# Ziggy (Raspberry Pi 3B+)
+ssh ziggy
 ```
 
 ## Passwordless SSH Setup
@@ -53,7 +53,7 @@ The config is already pre-applied on this laptop.
 
 ```bash
 ssh tiamat        # Proxmox host (root@192.168.12.50)
-ssh pi            # Raspberry Pi 3B+ (pi@192.168.12.20)
+ssh ziggy            # Ziggy (Raspberry Pi 3B+) (pi@192.168.12.20)
 ssh ct-media      # CT-110 media stack
 ssh ct-adguard    # CT-102 AdGuard Home
 ssh ct-wg         # CT-100 WireGuard server

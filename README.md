@@ -15,7 +15,7 @@ Tiamat — Proxmox VE 9.x (192.168.12.10)
     ├── Homarr (unified dashboard :7575)
     └── MediaStack Control (container manager :9900)
 
-Raspberry Pi 3B+ (192.168.12.20)
+Ziggy (Raspberry Pi 3B+) (192.168.12.20)
 ├── AdGuard Home replica (synced from CT-102 every 5 min)
 ├── wg-easy (remote access VPN :51820)
 └── Vaultwarden + Caddy (password manager :443)
@@ -43,7 +43,7 @@ homelab-media-stack/
 │   ├── traefik/
 │   ├── adguardhome/      # AdGuard Home (Proxmox CT-102)
 │   └── wireguard-server/ # WireGuard VPN server (CT-100) + Gluetun proxy (CT-101)
-├── pi/                   # Raspberry Pi 3B+ configuration
+├── pi/                   # Ziggy (Raspberry Pi 3B+) configuration
 │   ├── adguardhome/      # AdGuard Home replica
 │   ├── wireguard/        # wg-easy remote access VPN
 │   └── vaultwarden/

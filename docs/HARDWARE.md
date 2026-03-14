@@ -28,7 +28,7 @@
 3. **Storage**: Add a dedicated SSD for Proxmox root + container volumes, keep 2TB HDD for media
 4. **Network**: Use wired Ethernet for the server (not Wi-Fi) for streaming stability
 
-## Raspberry Pi 3B+
+## Ziggy (Raspberry Pi 3B+)
 
 | Component | Spec |
 |-----------|------|

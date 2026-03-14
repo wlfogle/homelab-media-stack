@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Raspberry Pi 3B+ Setup Script
+# Ziggy (Raspberry Pi 3B+) Setup Script
 # Raspberry Pi OS Lite 64-bit (Bookworm)
 # Services: AdGuard Home (replica), WireGuard (wg-easy), Vaultwarden, Caddy
 # Run as: sudo bash setup-pi.sh
