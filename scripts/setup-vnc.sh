@@ -54,7 +54,10 @@ python3 - "$VNC_PASS" <<'PYEOF'
 import sys, subprocess, os
 p = (sys.argv[1].encode() + b'\x00'*8)[:8]
 key = bytes(int('{:08b}'.format(b)[::-1],2) for b in p)
-out = subprocess.run(['openssl','enc','-des-ecb','-nosalt','-nopad','-K',key.hex()],
+# OpenSSL 3.x requires -provider legacy for DES
+out = subprocess.run(
+    ['openssl','enc','-des-ecb','-provider','legacy','-provider','default',
+     '-nosalt','-nopad','-K',key.hex()],
     input=b'\x00'*8, capture_output=True, check=True).stdout[:8]
 open('/root/.vnc/passwd','wb').write(out)
 os.chmod('/root/.vnc/passwd', 0o600)
