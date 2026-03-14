@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
 # setup-vnc.sh — Tiamat (Proxmox host) VNC + noVNC Desktop Setup
-# Installs XFCE4 + TigerVNC 1.15+ + noVNC web interface
+# Installs OpenBox + LXPanel + TigerVNC 1.15+ + noVNC web interface
+# Desktop: OpenBox session + LXPanel (lightweight, per awesome-stack protocol)
 # TigerVNC 1.15+: config in ~/.config/tigervnc, built-in systemd service
 # View from: native VNC client, any browser, Android, Fire TV (Silk browser)
 # =============================================================================
@@ -34,11 +35,12 @@ if [[ ${#VNC_PASS} -lt 6 ]]; then
 fi
 
 # ── Install dependencies ─────────────────────────────────────────────────────
-echo "[1/6] Installing XFCE4 + TigerVNC + noVNC..."
+echo "[1/6] Installing OpenBox + LXPanel + TigerVNC + noVNC + Warp + Opera..."
 apt-get update -y
 apt-get install -y \
-    xfce4 \
-    xfce4-goodies \
+    openbox \
+    lxpanel \
+    xterm \
     tigervnc-standalone-server \
     tigervnc-common \
     dbus-x11 \
@@ -47,7 +49,24 @@ apt-get install -y \
     novnc \
     websockify \
     python3 \
+    curl wget ca-certificates gnupg \
     --no-install-recommends
+
+# Warp terminal
+echo "  Installing Warp terminal..."
+curl -fsSL https://releases.warp.dev/linux/keys/warp.asc \
+    | gpg --dearmor -o /usr/share/keyrings/warpdotdev.gpg
+echo "deb [signed-by=/usr/share/keyrings/warpdotdev.gpg] https://releases.warp.dev/linux/deb stable main" \
+    > /etc/apt/sources.list.d/warpdotdev.list
+apt-get update -qq && apt-get install -y warp-terminal
+
+# Opera browser
+echo "  Installing Opera browser..."
+wget -qO- https://deb.opera.com/archive.key \
+    | gpg --dearmor > /usr/share/keyrings/opera-browser.gpg
+echo "deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ stable non-free" \
+    > /etc/apt/sources.list.d/opera-stable.list
+apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y opera-stable
 
 # ── Set VNC password (TigerVNC 1.15 — config in ~/.config/tigervnc) ──────────
 echo "[2/6] Setting VNC password..."
@@ -73,14 +92,14 @@ unset VNC_PASS VNC_PASS2
 # ── Write xstartup ───────────────────────────────────────────────────────────
 echo "[3/6] Writing VNC xstartup for XFCE4..."
 cat > "${VNC_CFG}/xstartup" << 'EOF'
-#!/usr/bin/env bash
-unset SESSION_MANAGER
-unset DBUS_SESSION_BUS_ADDRESS
-export XKL_XMODMAP_DISABLE=1
-if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
-    eval "$(dbus-launch --sh-syntax)"
-fi
-exec startxfce4
+#!/bin/bash
+xrdb $HOME/.Xresources 2>/dev/null || true
+# Start OpenBox window manager + LXDE panel
+openbox-session &
+lxpanel &
+# Start terminal for Warp login
+xterm &
+wait
 EOF
 chmod +x "${VNC_CFG}/xstartup"
 
