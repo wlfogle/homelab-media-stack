@@ -148,7 +148,7 @@ services:
       - ${APPDATA_ROOT:-/opt/appdata}/homarr/icons:/app/public/icons
       - ${APPDATA_ROOT:-/opt/appdata}/homarr/data:/data
 
-  # ── MediaStack Control (container manager + logs + system stats) ─
+  # ── MediaStack Control (container manager + logs + system stats) ─────────────────
   mediastack-control:
     image: ghcr.io/wlfogle/mediastack-control:latest
     container_name: mediastack-control
@@ -163,3 +163,49 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/rootfs:ro
     pid: host
+
+  # ── rdt-client (Real-Debrid download client) ─────────────────────────────
+  rdt-client:
+    image: rogerfar/rdtclient:latest
+    container_name: rdt-client
+    restart: unless-stopped
+    networks: [media-net]
+    ports:
+      - "${RDTCLIENT_PORT:-6500}:6500"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ${APPDATA_ROOT:-/opt/appdata}/rdt-client:/data
+      - ${DOWNLOADS_ROOT:-/mnt/downloads}:/downloads
+
+  # ── Open WebUI (AI chat frontend → laptop Ollama RTX 4080) ───────────────
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    networks: [media-net]
+    ports:
+      - "${OPENWEBUI_PORT:-3000}:8080"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_HOST:-http://192.168.12.172:11434}
+      - WEBUI_AUTH=false
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ${APPDATA_ROOT:-/opt/appdata}/open-webui:/app/backend/data
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  # ── SearXNG (private search → Open WebUI web search backend) ─────────────
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    networks: [media-net]
+    ports:
+      - "${SEARXNG_PORT:-8081}:8080"
+    environment:
+      - TZ=${TZ:-America/Chicago}
+    volumes:
+      - ${APPDATA_ROOT:-/opt/appdata}/searxng:/etc/searxng

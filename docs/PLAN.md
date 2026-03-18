@@ -17,6 +17,7 @@ Download stack (static IPs 192.168.12.210–224)
 ├── CT-210 prowlarr       192.168.12.210   Prowlarr :9696  ← proxied via CT-101
 ├── CT-211 jackett        192.168.12.211   Jackett :9117 (legacy fallback)
 ├── CT-212 qbittorrent    192.168.12.212   qBittorrent :8080  ← proxied via CT-101
+├── CT-213 rdt-client     192.168.12.213   rdt-client :6500   ← Real-Debrid download client
 ├── CT-214 sonarr         192.168.12.214   Sonarr :8989
 ├── CT-215 radarr         192.168.12.215   Radarr :7878
 ├── CT-216 proxarr        192.168.12.216   Proxarr (proxy routing for *arr)
@@ -47,9 +48,19 @@ Tools     (DHCP): CT-270 filebot | CT-271 flexget | CT-272 buildarr | CT-274 org
                   CT-278 crowdsec | CT-279 tailscale
 
 VMs / Special
-├── VM-200 alexa-media-bridge  192.168.12.200   Ubuntu 4GB
-├── CT-900 ziggy               DHCP             Heavy workloads, 32GB RAM
+├── VM-200 alexa-media-bridge  192.168.12.200   Ubuntu 4GB — Alexa media bridge
+├── VM-500 haos                192.168.12.250   Home Assistant OS (smart home + Alexa integration)
+├── VM-901 windows-gaming      192.168.12.201   Windows 11 26H1, RX 580 GPU passthrough (VFIO pre-configured)
+│                                               sdb (240GB SSD) disk passthrough, 300GB LVM OS disk
+│                                               PlayOn Home → saves to /mnt/hdd/media/playon
+│                                               ⚠ RAM constrained until Tiamat upgrade — stop CTs before gaming
+├── CT-900 ziggy               DHCP             Open WebUI :3000, SearXNG :8081 — AI frontend
+│                                               Ollama served by laptop RTX 4080 at 192.168.12.172:11434
 └── CT-950 agent-comms         DHCP             Agent communication broker
+
+Laptop — GPU inference server (192.168.12.172)
+├── Ollama :11434 (RTX 4080, 12GB VRAM)   LLM inference for entire stack
+└── Tdarr node (Phase 6)                  Batch NVENC transcoding worker
 
 Ziggy (Raspberry Pi 3B+) — 192.168.12.20
 ├── AdGuard Home :53/:3000    Network-wide DNS + ad-blocking (sole instance)
@@ -69,7 +80,23 @@ Storage — 2TB WD HDD at /mnt/hdd (wiped, previously Windows Steam library)
 ├── /mnt/hdd/media/tv            Sonarr managed library → Plex / Jellyfin
 ├── /mnt/hdd/media/music         Music library
 ├── /mnt/hdd/media/books         Readarr / Calibre-Web library
-└── /mnt/hdd/backups             vzdump container snapshots
+├── /mnt/hdd/media/playon        PlayOn Home recordings (VM-901) → Plex / Jellyfin
+└── /mnt/hdd/backups             vzdump container snapshots + Restic app-data backups
+
+Laptop NFS shares (192.168.12.172) → mounted on Tiamat at /mnt/laptop/
+├── /mnt/laptop/calibre          Calibre Library (16GB) → CT-233 Calibre-Web
+├── /mnt/laptop/cookbooks        Cookbooks (2.4GB) → CT-233 second library
+├── /mnt/laptop/videos           Personal Videos (29GB) → Plex / Jellyfin Home Videos
+├── /mnt/laptop/isos             ISOs (195GB) → Proxmox ISO uploads
+└── /mnt/laptop/roms             ROMs (89GB, Switch NSPs) → future emulation frontend
+
+IPTV — lou.m3u at /media/loufogle/Data/Downloads/lou.m3u on laptop
+└── Served to Jellyfin Live TV or TVHeadend (CT-235) via NFS mount (see docs/NFS.md)
+
+Backups — Restic (daily cron on Proxmox host)
+├── Source:      /opt/appdata (all container configs)
+├── Destination: /mnt/hdd/backups/restic
+└── Retention:   7 daily, 4 weekly, 3 monthly  (see docs/BACKUPS.md)
 
 Bind-mount /mnt/hdd → /data inside each *arr + download container
 
@@ -96,6 +123,7 @@ Client Devices
 | CT-210 | prowlarr | 192.168.12.210 | 1GB | 9696 |
 | CT-211 | jackett | 192.168.12.211 | 512MB | 9117 |
 | CT-212 | qbittorrent | 192.168.12.212 | 2GB | 8080 |
+| CT-213 | rdt-client | 192.168.12.213 | 1GB | 6500 |
 | CT-214 | sonarr | 192.168.12.214 | 1GB | 8989 |
 | CT-215 | radarr | 192.168.12.215 | 1GB | 7878 |
 | CT-216 | proxarr | 192.168.12.216 | 512MB | — |
@@ -160,6 +188,10 @@ Client Devices
 12. Configure qBittorrent (CT-212) + Prowlarr (CT-210): proxy → `192.168.12.101:8888`
 13. Configure Prowlarr: FlareSolverr → `http://192.168.12.102:8191`
 14. Bind-mount `/mnt/hdd` → `/data` in all download + *arr containers
+15. Create CT-213 rdt-client, add Real-Debrid API key, wire as download client in Sonarr/Radarr
+    - rdt-client downloads from Real-Debrid cloud cache — no VPN needed for public indexers
+    - qBit stays for private trackers / anything not cached on Real-Debrid
+    - See docs/REAL-DEBRID.md for setup
 ### Phase 4 — Media Servers
 15. Create CT-230 (Plex), CT-231 (Jellyfin)
 16. Bind-mount `/mnt/hdd/media` → `/data/media` for Plex and Jellyfin
@@ -172,6 +204,13 @@ Client Devices
 21. Create CT-260–CT-279
 22. Configure Homarr/Homepage with all service links
 23. Set up Recyclarr quality profiles sync
+### Phase 6.5 — AI Services (Laptop + CT-900)
+24. On laptop: install Ollama, bind to `0.0.0.0:11434`, enable systemd service
+    - Verify RTX 4080 is used: `ollama run llama3` and check `nvidia-smi`
+25. In CT-900: deploy Open WebUI → `OLLAMA_BASE_URL=http://192.168.12.172:11434`
+26. In CT-900: deploy SearXNG → configure as web search backend in Open WebUI
+    - See docs/AI.md for full setup
+
 ### Phase 7 — Ziggy (Raspberry Pi 3B+)
 24. Image SD → Raspberry Pi OS Lite 64-bit (Bookworm)
 25. Run `bash pi/setup-pi.sh`
@@ -182,6 +221,24 @@ Client Devices
 29. Configure CrowdSec (CT-278) with Traefik bouncer
 30. Set up Authentik SSO for externally-exposed services
 31. Enable Tailscale mesh (CT-279)
+
+### Phase 9 — Windows Gaming VM (VM-901)
+32. Recreate VM-901 .conf (disks already exist, VFIO pre-configured):
+    - GPU: 09:00.0 + 09:00.1 (RX 580, already vfio-pci)
+    - Disk 0: local-lvm:vm-901-disk-1 (300GB, fresh Win11 install)
+    - Disk 1: /dev/sdb passthrough (240GB SSD, games storage)
+    - ISOs: 28000.1_MULTI_X64_EN-US.ISO + virtio-win.iso already on Tiamat
+    - TPM 2.0 + OVMF (UEFI) — existing efivars + tpmstate volumes
+    - See proxmox/vm-windows-playon.md for full config
+33. Install PlayOn Home → set save path to mapped share → /mnt/hdd/media/playon
+    ⚠ RAM: stop non-essential CTs before gaming until RAM upgrade (8GB total on Tiamat)
+    Priority RAM upgrade: 2×32GB DDR4-3200 (B450M DS3H, 3 slots free)
+
+### Phase 10 — Home Assistant
+34. Create VM-500 via community-scripts HAOS installer
+35. Configure HA integrations: Plex, Jellyfin, AdGuard, Alexa, WireGuard
+36. Set up VM-200 Alexa media bridge for voice control
+    - See awesome-stack repo homeassistant-configs/
 ## VPN Kill Switch Verification
 ```bash
 # Confirm traffic exits through CT-100 VPN, not home IP

@@ -22,11 +22,31 @@
 
 ## Recommended Upgrades
 
-1. **RAM**: Add 1-3x 8GB or 16GB DDR4-3200 sticks (3 slots free, B450M DS3H supports up to 128GB across 4 slots)
-   - 8GB limits concurrent LXC containers on Proxmox — 16-32GB total strongly recommended before deploying full stack
-2. **OS**: Windows 10 Home reached end of life October 2025 — plan migration to Proxmox VE
-3. **Storage**: Add a dedicated SSD for Proxmox root + container volumes, keep 2TB HDD for media
-4. **Network**: Use wired Ethernet for the server (not Wi-Fi) for streaming stability
+1. **RAM** ⚠️ HIGH PRIORITY: 2×32GB DDR4-3200 CL16 (e.g. Corsair CMK64GX4M2E3200C16)
+   - Currently 8GB — only 2.5GB free with stack running. Gaming VM (VM-901) requires stopping CTs first.
+   - B450M DS3H supports up to 128GB across 4 slots (3 slots free)
+   - Must upgrade before running VM-901 alongside full media stack simultaneously
+2. **OS**: Migrated to Proxmox VE ✅
+3. **Storage**: 2TB WD HDD in use for media. 240GB WD SSD (sdb) passed through to VM-901 for games.
+4. **Network**: Use wired Ethernet — avoid Wi-Fi for streaming stability
+
+## GPU Passthrough Status
+
+RX 580 (XFX) is **fully configured for VFIO passthrough** — no setup needed:
+- `amd_iommu=on iommu=pt` in GRUB cmdline ✅
+- IOMMU Group 2: `09:00.0` (GPU) + `09:00.1` (HDMI audio) — clean group ✅
+- Both functions bound to `vfio-pci` driver ✅
+- VFIO PCI IDs: `1002:67df,1002:aaf0` in `/etc/modprobe.d/vfio-pci.conf` ✅
+- `vfio_iommu_type1 allow_unsafe_interrupts=1` set ✅
+
+> With GPU passed through, Proxmox host is **headless** — manage via web UI or SSH only.
+
+## Storage on Tiamat
+
+| Device | Size | Use |
+|--------|------|-----|
+| sda (ST2000DM008 HDD) | 1.8TB | Proxmox LVM: root (96GB), media-hdd (1.5TB), all CT/VM disks |
+| sdb (WDC WDS240G2G0A SSD) | 223GB | Passed through to VM-901 (Windows games storage); contains existing Windows install on sdb4 |
 
 ## Ziggy (Raspberry Pi 3B+)
 

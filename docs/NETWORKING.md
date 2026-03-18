@@ -70,6 +70,25 @@ iface vmbr0 inet static
 | Plex (CT-230) | `http://192.168.12.230:32400/web` |
 | Jellyfin (CT-231) | `http://192.168.12.231:8096` |
 
+### VMs
+| VM | Purpose | IP | Notes |
+|---|---|---|---|
+| VM-901 `windows-gaming` | Windows 11 gaming + PlayOn | `192.168.12.201` | RX 580 GPU passthrough, sdb disk passthrough |
+| VM-500 `haos` | Home Assistant OS | `192.168.12.250` | Smart home hub |
+| VM-200 `alexa-bridge` | Alexa media bridge | `192.168.12.200` | Ubuntu |
+
+### Laptop NFS Exports (192.168.12.172)
+| Export path | Tiamat mount | Consumer |
+|---|---|---|
+| `/media/loufogle/Data/Calibre Library` | `/mnt/laptop/calibre` | CT-233 Calibre-Web |
+| `/media/loufogle/Data/Cookbooks` | `/mnt/laptop/cookbooks` | CT-233 second library |
+| `/media/loufogle/SystemBackup/Videos` | `/mnt/laptop/videos` | Plex / Jellyfin Home Videos |
+| `/media/loufogle/ISOs1` | `/mnt/laptop/isos` | Proxmox ISO uploads |
+| `/media/loufogle/Games/roms` | `/mnt/laptop/roms` | Future emulation frontend |
+| `/media/loufogle/Data/Downloads/lou.m3u` | `/mnt/laptop/iptv/lou.m3u` | Jellyfin Live TV / TVHeadend CT-235 |
+
+See `docs/NFS.md` for setup.
+
 ## VPN Architecture (kill-switch path)
 
 CT-101 is not Gluetun software. It runs:
