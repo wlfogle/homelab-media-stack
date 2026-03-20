@@ -22,9 +22,7 @@ class TvMainActivity : AppCompatActivity() {
         binding = ActivityTvMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val services = ServiceRepository.getServices(
-            baseUrl = getString(R.string.server_base_url)
-        )
+        val services = ServiceRepository.getServices()
 
         adapter = ServiceAdapter(services) { service ->
             val intent = Intent(this, WebViewActivity::class.java).apply {

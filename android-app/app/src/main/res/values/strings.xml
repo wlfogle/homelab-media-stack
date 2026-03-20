@@ -2,12 +2,11 @@
 <resources>
     <string name="app_name">TiamatsStack</string>
 
-    <!-- ── Server base URL (CT-110 media stack container) ──
-         Change this IP if your server moves. No trailing slash. -->
-    <string name="server_base_url">http://192.168.12.110</string>
+    <!-- Per-service LXC architecture — each service has its own IP.
+         Service URLs are defined in MediaService.kt ServiceRepository. -->
 
-    <!-- ── AdGuard Home (CT-102 — separate IP) ── -->
-    <string name="adguard_url">http://192.168.12.102:3000</string>
+    <!-- AdGuard Home runs on Ziggy Pi -->
+    <string name="adguard_url">http://192.168.12.20:3000</string>
 
     <!-- ── Menu strings ── -->
     <string name="menu_settings">Settings</string>

@@ -33,9 +33,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        val services = ServiceRepository.getServices(
-            baseUrl = getString(R.string.server_base_url)
-        )
+        val services = ServiceRepository.getServices()
         adapter = ServiceAdapter(services) { service ->
             openService(service)
         }
@@ -72,10 +70,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettingsDialog() {
-        val currentUrl = getString(R.string.server_base_url)
         AlertDialog.Builder(this)
             .setTitle("Server Settings")
-            .setMessage("Current server: $currentUrl\n\nTo change the server IP, edit res/values/strings.xml and rebuild.")
+            .setMessage("Per-service LXC architecture — each service has its own IP.\n\nTo change IPs, edit MediaService.kt ServiceRepository and rebuild.")
             .setPositiveButton("OK", null)
             .show()
     }
@@ -86,9 +83,9 @@ class MainActivity : AppCompatActivity() {
             .setMessage(
                 "Homelab Media Stack Controller\n\n" +
                 "Controls: Jellyfin, Plex, Sonarr, Radarr,\n" +
-                "Prowlarr, qBittorrent, Overseerr, Bazarr,\n" +
-                "Tautulli, Homarr, AdGuard Home\n\n" +
-                "Server: ${getString(R.string.server_base_url)}\n\n" +
+                "Prowlarr, qBittorrent, Bazarr, Open WebUI,\n" +
+                "Authentik, AdGuard Home, Traefik\n\n" +
+                "Tiamat @ 192.168.12.242\n\n" +
                 "v${BuildConfig.VERSION_NAME}"
             )
             .setPositiveButton("OK", null)

@@ -24,7 +24,7 @@ class WebViewActivity : AppCompatActivity() {
         binding = ActivityWebviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url   = intent.getStringExtra(EXTRA_URL)   ?: getString(R.string.server_base_url)
+        val url   = intent.getStringExtra(EXTRA_URL)   ?: "http://192.168.12.231:8096"
         val title = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
 
         setSupportActionBar(binding.toolbar)
