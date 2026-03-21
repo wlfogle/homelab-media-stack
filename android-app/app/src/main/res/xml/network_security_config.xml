@@ -25,6 +25,7 @@
         <domain includeSubdomains="false">192.168.12.230</domain>
         <domain includeSubdomains="false">192.168.12.231</domain>
         <!-- DHCP services — update IPs if they change -->
+        <domain includeSubdomains="false">192.168.12.151</domain>
         <domain includeSubdomains="false">192.168.12.188</domain>
         <domain includeSubdomains="false">192.168.12.223</domain>
         <!-- Proxmox host -->

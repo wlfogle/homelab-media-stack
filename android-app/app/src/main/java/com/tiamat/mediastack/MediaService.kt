@@ -51,9 +51,9 @@ object ServiceRepository {
 
         // ── Requests ──────────────────────────────────────────────────────────
         MediaService(
-            name        = "Overseerr",
-            url         = "http://192.168.12.230:5055",
-            description = "Request movies & TV for Plex and Jellyfin",
+            name        = "Jellyseerr",
+            url         = "http://192.168.12.151:5055",
+            description = "Request movies & TV for Jellyfin",
             iconResId   = R.drawable.ic_service_overseerr,
             category    = MediaService.Category.REQUEST
         ),

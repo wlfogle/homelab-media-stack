@@ -29,8 +29,8 @@ nzb360 is a unified controller for the entire arr stack — add shows, movies, m
 
 > Get API keys from each service: Settings → General → Security → API Key
 
-### Overseerr — Simpler request-only option (free, browser)
-1. Open Chrome → `http://192.168.12.230:5055` (once CT-241 Overseerr is deployed)
+### Jellyseerr — Simpler request-only option (free, browser)
+1. Open Chrome → `http://192.168.12.151:5055`
 2. Sign in with Jellyfin account
 3. Search → click **Request** — Sonarr/Radarr handles the rest
 
@@ -44,6 +44,7 @@ nzb360 is a unified controller for the entire arr stack — add shows, movies, m
 | Prowlarr | http://192.168.12.210:9696 |
 | qBittorrent | http://192.168.12.212:8080 |
 | Bazarr | http://192.168.12.188:6767 |
+| Jellyseerr | http://192.168.12.151:5055 |
 | Open WebUI | http://192.168.12.223:3000 |
 | Authentik | http://192.168.12.107:9000 |
 | AdGuard Home | http://192.168.12.20:3000 |

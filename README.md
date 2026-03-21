@@ -22,9 +22,14 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-230 plex           192.168.12.230  :32400
 │   └── CT-231 jellyfin       192.168.12.231  :8096
 ├── Media Management
-│   └── CT-240 bazarr         DHCP            :6767 (more CTs pending RAM upgrade)
+│   ├── CT-240 bazarr         DHCP            :6767
+│   └── CT-242 jellyseerr     DHCP            :5055 (Jellyfin requests)
 └── AI
     └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
+
+Tiamat Desktop: Openbox + tint2 + Opera (via x11vnc :5900)
+Traefik local DNS: *.tiamat.local → per-service routing
+Backups: daily 3 AM via scripts/backup.sh → /mnt/hdd/backups
 
 Laptop - 192.168.12.172
 ├── Ollama :11434 (RTX 4080 GPU, 41 models)

@@ -15,10 +15,10 @@ WebView-based dashboard linking all services. See `android-app/README.md` to bui
 
 Fire TV runs Android — use **Silk Browser** (pre-installed) to access all arr stack web UIs.
 
-### Option 1 — Overseerr (easiest, request only)
+### Option 1 — Jellyseerr (easiest, request only)
 Simple Netflix-style interface to request movies and TV shows.
 1. Open **Silk Browser**
-2. Go to `http://192.168.12.230:5055` (once Overseerr CT-241 is deployed)
+2. Go to `http://192.168.12.151:5055`
 3. Sign in with your Jellyfin account
 4. Search for a movie or show → click **Request**
 5. Radarr/Sonarr picks it up automatically and downloads it
