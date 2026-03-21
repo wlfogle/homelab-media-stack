@@ -169,6 +169,57 @@ Client Devices
 | CT-277 | recyclarr | Recyclarr (*arr quality sync) |
 | CT-278 | crowdsec | CrowdSec (IDS/IPS) |
 | CT-279 | tailscale | Tailscale mesh VPN |
+## Current Deployment Status
+> Last updated: 2026-03-21 — reflects live state of Tiamat
+
+### Running containers (17 total)
+All containers below are running and passing HTTP health checks.
+
+| CT | Service | Status | Notes |
+|----|---------|--------|-------|
+| CT-100 | wireguard | ✅ running | |
+| CT-101 | wg-proxy | ✅ running | |
+| CT-102 | flaresolverr | ✅ running | |
+| CT-103 | traefik | ✅ running | 13 routes configured via file provider |
+| CT-104 | vaultwarden | ✅ running | |
+| CT-105 | valkey | ✅ running | |
+| CT-106 | postgresql | ✅ running | |
+| CT-107 | authentik | ✅ running | |
+| CT-210 | prowlarr | ✅ running | HTTP 200 |
+| CT-212 | qbittorrent | ✅ running | |
+| CT-214 | sonarr | ✅ running | HTTP 200 |
+| CT-215 | radarr | ✅ running | HTTP 200 |
+| CT-230 | plex | ✅ running | HTTP 401 (auth required, normal) |
+| CT-231 | jellyfin | ✅ running | HTTP 302 → login |
+| CT-240 | bazarr | ✅ running | HTTP 200, DHCP ≀12.188 |
+| CT-242 | jellyseerr | ✅ running | HTTP 307 → /setup — **awaits first-run setup** |
+| CT-900 | ziggy | ✅ running | Open WebUI + SearXNG |
+
+### Traefik (CT-103) — routes live
+All `*.tiamat.local` routes configured and hot-loaded. See `docs/NETWORKING.md` for full table.
+To add a new route: drop a YAML file in `/etc/traefik/dynamic/` on CT-103 — no restart needed.
+
+### Jellyseerr (CT-242) — first-run pending
+Docker container deployed (`fallenbagel/jellyseerr:2.7.3`), port 5055 responding.
+Complete setup at `http://192.168.12.151:5055` (or `http://jellyseerr.tiamat.local`):
+- Connect to Jellyfin: `http://192.168.12.231:8096`
+- Connect to Sonarr: `http://192.168.12.214:8989`
+- Connect to Radarr: `http://192.168.12.215:7878`
+
+### Backup cron — active
+Vzdump of all 17 CTs runs daily at 03:00 → `/mnt/hdd/backups/`.
+See `docs/BACKUPS.md` for full scope and restore instructions.
+
+### Tiamat desktop (Openbox autologin)
+LightDM configured for root autologin → Openbox session on `:0`.
+Opera launches on session start with 5 service tabs (Traefik dashboard, Jellyfin, Sonarr, Radarr, Prowlarr).
+Autostart: `~/.config/openbox/autostart`
+
+### IP conflict note — .231
+MAC `00:11:d9:b8:80:a7` (TiVo OUI) was previously flagged squatting on `.231`.
+Device is currently offline. CT-231 properly owns `.231`.
+If TiVo comes back online and conflicts, add a DHCP reservation on the router to push it elsewhere.
+
 ## Deployment Order
 ### Phase 1 — Proxmox Host
 1. Boot Tiamat from USB → Proxmox VE 9.0 ISO

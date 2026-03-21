@@ -1,0 +1,24 @@
+# Jellyseerr — CT-242 (jellyseerr, DHCP ~192.168.12.151)
+# Deployed inside CT-242 as a Docker container.
+# Live compose file: /opt/jellyseerr/docker-compose.yml on CT-242
+# First-run setup: http://<CT-242-IP>:5055  (connect to Jellyfin at 192.168.12.231:8096)
+# Traefik route: http://jellyseerr.tiamat.local → CT-242:5055
+
+services:
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - TZ=America/New_York
+      - PORT=5055
+    ports:
+      - '5055:5055'
+    volumes:
+      - /opt/jellyseerr/config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5055/api/v1/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

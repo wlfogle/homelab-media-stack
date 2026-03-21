@@ -105,6 +105,30 @@ qBittorrent/Prowlarr -> 192.168.12.101:8888 (TinyProxy)
 
 If WG tunnel drops, proxy path breaks and downloads fail closed.
 
+## Traefik Reverse Proxy Routes (CT-103)
+All services are accessible via `*.tiamat.local` through Traefik at `192.168.12.103`.
+Dynamic route files live in `infrastructure/traefik/dynamic/`.
+
+| Hostname | Service | Backend |
+|---|---|---|
+| `traefik.tiamat.local` | Traefik dashboard | `192.168.12.103:8080` |
+| `jellyfin.tiamat.local` | Jellyfin (CT-231) | `192.168.12.231:8096` |
+| `plex.tiamat.local` | Plex (CT-230) | `192.168.12.230:32400` |
+| `sonarr.tiamat.local` | Sonarr (CT-214) | `192.168.12.214:8989` |
+| `radarr.tiamat.local` | Radarr (CT-215) | `192.168.12.215:7878` |
+| `prowlarr.tiamat.local` | Prowlarr (CT-210) | `192.168.12.210:9696` |
+| `qbittorrent.tiamat.local` | qBittorrent (CT-212) | `192.168.12.212:8080` |
+| `bazarr.tiamat.local` | Bazarr (CT-240) | `192.168.12.188:6767` \* |
+| `jellyseerr.tiamat.local` | Jellyseerr (CT-242) | `192.168.12.151:5055` \* |
+| `vault.tiamat.local` | Vaultwarden (CT-104) | `192.168.12.104:80` |
+| `auth.tiamat.local` | Authentik (CT-107) | `192.168.12.107:9000` |
+
+\* DHCP addresses — set static DHCP reservations on router for CT-240 and CT-242,
+then update `infrastructure/traefik/dynamic/media-management.yml` if they change.
+
+To add a new route, drop a YAML file in `/etc/traefik/dynamic/` on CT-103.
+Traefik hot-reloads it immediately (no restart needed).
+
 ## DNS / Remote Access on Ziggy
 
 Ziggy (`192.168.12.20`) runs:
