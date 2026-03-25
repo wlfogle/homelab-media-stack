@@ -13,12 +13,4 @@
     <color name="white">#FFFFFF</color>
     <color name="text_secondary">#B0B0C0</color>
 
-    <!-- Category badge colours -->
-    <color name="category_media">#00A8CC</color>      <!-- teal  — Jellyfin / Plex   -->
-    <color name="category_request">#9B59B6</color>    <!-- purple — Overseerr        -->
-    <color name="category_arr">#E67E22</color>        <!-- orange — *arr suite       -->
-    <color name="category_download">#27AE60</color>   <!-- green  — qBittorrent      -->
-    <color name="category_analytics">#F39C12</color>  <!-- amber  — Tautulli         -->
-    <color name="category_dashboard">#2980B9</color>  <!-- blue   — Homarr           -->
-    <color name="category_network">#C0392B</color>    <!-- red    — AdGuard          -->
 </resources>

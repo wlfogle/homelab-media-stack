@@ -19,7 +19,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select a service"
+        android:text="@string/tv_subtitle"
         android:textSize="16sp"
         android:textColor="@color/text_secondary"
         android:paddingBottom="24dp" />

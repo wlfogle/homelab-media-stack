@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TiamatsStack</string>
-
-    <!-- Per-service LXC architecture — each service has its own IP.
-         Service URLs are defined in MediaService.kt ServiceRepository. -->
-
-    <!-- AdGuard Home runs on Ziggy Pi -->
-    <string name="adguard_url">http://192.168.12.20:3000</string>
-
-    <!-- ── Menu strings ── -->
-    <string name="menu_settings">Settings</string>
-    <string name="menu_about">About</string>
-
-    <!-- ── Accessibility ── -->
+    <string name="tv_subtitle">Search \u0026 add content</string>
+    <string name="coming_soon">Coming Soon</string>
     <string name="service_icon_description">Service icon</string>
 </resources>

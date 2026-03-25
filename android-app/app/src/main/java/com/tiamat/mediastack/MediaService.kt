@@ -1,139 +1,75 @@
 package com.tiamat.mediastack
 
 /**
- * Represents a single media-stack service shown in the dashboard.
+ * Represents a content service shown in the dashboard.
+ * The app is a search-and-add interface — the arr stack + qBittorrent
+ * handle downloading, and Jellyfin/Plex auto-import finished media.
  */
 data class MediaService(
     val name:        String,
     val url:         String,
     val description: String,
     val iconResId:   Int,
-    val category:    Category
-) {
-    enum class Category {
-        MEDIA,       // Jellyfin, Plex
-        REQUEST,     // Overseerr
-        ARR,         // Sonarr, Radarr, Prowlarr, Bazarr
-        DOWNLOAD,    // qBittorrent
-        ANALYTICS,   // Tautulli
-        DASHBOARD,   // Homarr
-        NETWORK      // AdGuard Home
-    }
-}
+    val available:   Boolean = true
+)
 
 /**
- * Static service list — per-service LXC architecture on Tiamat.
- * Each service runs in its own Proxmox CT with a dedicated IP.
+ * Service list — per-service LXC architecture on Tiamat (192.168.12.242).
  *
- * Static IPs:      Infrastructure 100-107, Download 210-224, Media 230-231
- * DHCP IPs:        Management 240+, Ziggy 900 — update if DHCP changes
- * Ziggy (Pi):      192.168.12.20  (AdGuard Home, wg-easy, Vaultwarden)
+ * Available services have static or known DHCP IPs.
+ * Unavailable services are planned but not yet deployed (need Tiamat RAM upgrade).
+ * Update URLs here when new containers come online.
  */
 object ServiceRepository {
 
     fun getServices(): List<MediaService> = listOf(
 
-        // ── Media Servers ─────────────────────────────────────────────────────
         MediaService(
-            name        = "Jellyfin",
-            url         = "http://192.168.12.231:8096",
-            description = "Open-source media server — TV, movies, music",
-            iconResId   = R.drawable.ic_service_jellyfin,
-            category    = MediaService.Category.MEDIA
-        ),
-        MediaService(
-            name        = "Plex",
-            url         = "http://192.168.12.230:32400/web",
-            description = "Plex Media Server — Live TV via HDHomeRun + PlayOn recordings",
-            iconResId   = R.drawable.ic_service_plex,
-            category    = MediaService.Category.MEDIA
-        ),
-
-        // ── Requests ──────────────────────────────────────────────────────────
-        MediaService(
-            name        = "Jellyseerr",
+            name        = "Movies & TV",
             url         = "http://192.168.12.151:5055",
-            description = "Request movies & TV for Jellyfin",
+            description = "Search & request via Jellyseerr",
             iconResId   = R.drawable.ic_service_overseerr,
-            category    = MediaService.Category.REQUEST
+            available   = true
         ),
 
-        // ── The Arr Suite ──────────────────────────────────────────────────────
         MediaService(
-            name        = "Sonarr",
-            url         = "http://192.168.12.214:8989",
-            description = "TV series automation",
-            iconResId   = R.drawable.ic_service_sonarr,
-            category    = MediaService.Category.ARR
-        ),
-        MediaService(
-            name        = "Radarr",
-            url         = "http://192.168.12.215:7878",
-            description = "Movie automation",
-            iconResId   = R.drawable.ic_service_radarr,
-            category    = MediaService.Category.ARR
-        ),
-        MediaService(
-            name        = "Prowlarr",
-            url         = "http://192.168.12.210:9696",
-            description = "Indexer manager for Sonarr & Radarr",
-            iconResId   = R.drawable.ic_service_prowlarr,
-            category    = MediaService.Category.ARR
-        ),
-        MediaService(
-            name        = "Bazarr",
-            url         = "http://192.168.12.188:6767",
-            description = "Subtitle manager",
-            iconResId   = R.drawable.ic_service_bazarr,
-            category    = MediaService.Category.ARR
+            name        = "Books",
+            url         = "http://192.168.12.217:8787",
+            description = "Search & add via Readarr",
+            iconResId   = R.drawable.ic_service_readarr,
+            available   = false  // CT-217 planned (static IP) — not created yet
         ),
 
-        // ── Downloads ─────────────────────────────────────────────────────────
         MediaService(
-            name        = "qBittorrent",
+            name        = "Music",
+            url         = "",
+            description = "Search & add via Lidarr",
+            iconResId   = R.drawable.ic_service_lidarr,
+            available   = false  // CT not deployed — needs Tiamat RAM upgrade
+        ),
+
+        MediaService(
+            name        = "Audiobooks",
+            url         = "",
+            description = "Browse & add via Audiobookshelf",
+            iconResId   = R.drawable.ic_service_audiobookshelf,
+            available   = false  // CT-232 planned, DHCP — not deployed yet
+        ),
+
+        MediaService(
+            name        = "eBooks",
+            url         = "",
+            description = "Browse & add via Calibre-Web",
+            iconResId   = R.drawable.ic_service_calibreweb,
+            available   = false  // CT-233 planned, DHCP — not deployed yet
+        ),
+
+        MediaService(
+            name        = "Add Torrent",
             url         = "http://192.168.12.212:8080",
-            description = "Torrent client — proxied through WireGuard VPN",
+            description = "Paste magnet or torrent URL",
             iconResId   = R.drawable.ic_service_qbit,
-            category    = MediaService.Category.DOWNLOAD
-        ),
-        MediaService(
-            name        = "rdt-client",
-            url         = "http://192.168.12.213:6500",
-            description = "Real-Debrid download client",
-            iconResId   = R.drawable.ic_service_qbit,
-            category    = MediaService.Category.DOWNLOAD
-        ),
-
-        // ── AI ────────────────────────────────────────────────────────────────
-        MediaService(
-            name        = "Open WebUI",
-            url         = "http://192.168.12.223:3000",
-            description = "AI chat — Ollama models via RTX 4080",
-            iconResId   = R.drawable.ic_service_homarr,
-            category    = MediaService.Category.DASHBOARD
-        ),
-
-        // ── Network & Infrastructure ──────────────────────────────────────────
-        MediaService(
-            name        = "AdGuard Home",
-            url         = "http://192.168.12.20:3000",
-            description = "Network-wide ad blocking and DNS",
-            iconResId   = R.drawable.ic_service_adguard,
-            category    = MediaService.Category.NETWORK
-        ),
-        MediaService(
-            name        = "Authentik",
-            url         = "http://192.168.12.107:9000",
-            description = "SSO identity provider",
-            iconResId   = R.drawable.ic_service_homarr,
-            category    = MediaService.Category.NETWORK
-        ),
-        MediaService(
-            name        = "Traefik",
-            url         = "http://192.168.12.103:8080",
-            description = "Reverse proxy dashboard",
-            iconResId   = R.drawable.ic_service_homarr,
-            category    = MediaService.Category.NETWORK
+            available   = true
         )
     )
 }

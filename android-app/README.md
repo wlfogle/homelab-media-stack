@@ -1,85 +1,100 @@
 # TiamatsStack Android App
 
-WebView-based controller/monitor for the Tiamat homelab media stack.
-Works on phones, tablets, and all Fire TV devices (via LEANBACK_LAUNCHER).
+WebView-based dashboard for the Tiamat homelab media stack.
+Works on phones, tablets, and Fire TV devices (via LEANBACK_LAUNCHER + D-pad navigation).
 
-## Services covered
+## Services
 
-| Service      | URL                         | Purpose                      |
-|-------------|------------------------------|------------------------------|
-| Homarr       | 192.168.12.110:7575         | Home dashboard               |
-| Jellyfin     | 192.168.12.110:8096         | Open-source media server     |
-| Plex         | 192.168.12.110:32400/web    | Plex + HDHomeRun Live TV     |
-| Overseerr    | 192.168.12.110:5055         | Request movies & TV          |
-| Sonarr       | 192.168.12.110:8989         | TV automation                |
-| Radarr       | 192.168.12.110:7878         | Movie automation             |
-| Prowlarr     | 192.168.12.110:9696         | Indexer manager              |
-| Bazarr       | 192.168.12.110:6767         | Subtitles                    |
-| qBittorrent  | 192.168.12.110:9090         | Torrents (VPN protected)     |
-| Tautulli     | 192.168.12.110:8181         | Plex analytics               |
-| AdGuard Home | 192.168.12.102:3000         | DNS / ad blocking            |
+Each service runs in its own Proxmox LXC with a dedicated IP on `192.168.12.x`.
+Service URLs are defined in `app/src/main/java/com/tiamat/mediastack/MediaService.kt`.
+
+**Media:** Jellyfin (CT-231), Plex (CT-230)
+**Requests:** Jellyseerr (CT-242, DHCP)
+**Arr Suite:** Sonarr (CT-214), Radarr (CT-215), Prowlarr (CT-210), Bazarr (CT-240, DHCP)
+**Downloads:** qBittorrent (CT-212, VPN proxied), rdt-client (CT-213)
+**AI:** Open WebUI (CT-900, DHCP) — Ollama via RTX 4080 on laptop
+**Network/Infra:** AdGuard Home (Pi), Authentik (CT-107), Traefik (CT-103), Vaultwarden (CT-104), wg-easy (Pi)
+
+## Prerequisites
+
+```bash
+sudo nala install openjdk-17-jdk android-tools-adb
+export ANDROID_HOME=~/Android/Sdk
+```
 
 ## Build
 
 ```bash
-# Prerequisites
-sudo nala install openjdk-17-jdk android-tools-adb
+# From the android-app/ directory:
 
-# Set Android SDK path
-export ANDROID_HOME=~/Android/Sdk   # or wherever your SDK lives
+# Debug builds (both flavors)
+./gradlew assembleDebug
 
-# Build debug APKs (mobile + Fire TV flavors)
-chmod +x build-app.sh
-./build-app.sh
+# Single flavor
+./gradlew assembleMobileDebug
+./gradlew assembleFiretvDebug
 
-# Build AND sideload to all 3 Fire TVs (192.168.12.51-53)
-./build-app.sh install-firetv
-
-# Install to connected phone/tablet
-./build-app.sh install-mobile
+# Release
+./gradlew assembleRelease
 ```
 
-## Product flavors
+APKs output to `app/build/outputs/apk/<flavor>/<buildType>/`.
 
-| Flavor  | Package suffix | Launcher category      | Notes                    |
-|---------|----------------|------------------------|--------------------------|
-| mobile  | .mobile        | LAUNCHER               | Portrait phone/tablet UI |
-| firetv  | .firetv        | LEANBACK_LAUNCHER      | 4-col TV grid, D-pad nav |
+## Product Flavors
 
-## Fire TV sideload setup
+- **mobile** (`.mobile`) — Phone/tablet, portrait grid, LAUNCHER intent
+- **firetv** (`.firetv`) — Fire TV / Android TV, 4-column grid, LEANBACK_LAUNCHER intent, D-pad navigation
 
-1. On each Fire TV: **Settings → My Fire TV → Developer Options → ADB Debugging: ON**
-2. Enable **Apps from Unknown Sources** on the same screen
-3. Run `./build-app.sh install-firetv`
+## Install
 
-The app shows up in the Fire TV **Your Apps & Channels** row under TiamatsStack.
-
-## Changing the server IP
-
-Edit `app/src/main/res/values/strings.xml`:
-```xml
-<string name="server_base_url">http://YOUR_SERVER_IP</string>
+### Phone / Tablet
+```bash
+adb install app/build/outputs/apk/mobile/debug/app-mobile-debug.apk
 ```
-Then rebuild.
 
-## Project structure
+### Fire TV (ADB over network)
+1. On Fire TV: **Settings → My Fire TV → Developer Options**
+   - Enable **ADB Debugging**
+   - Enable **Apps from Unknown Sources**
+2. Find Fire TV IP: **Settings → My Fire TV → About → Network**
+3. Connect and install:
+   ```bash
+   adb connect <fire-tv-ip>:5555
+   adb install app/build/outputs/apk/firetv/debug/app-firetv-debug.apk
+   ```
+
+The app appears in Fire TV's **Your Apps & Channels** row.
+
+### Fire TV (Downloader app)
+1. Install **Downloader** (by AFTVnews) from Fire TV app store
+2. Host APK on LAN: `python3 -m http.server 8000` in APK directory
+3. Open Downloader → `http://192.168.12.172:8000/app-firetv-debug.apk`
+
+## Updating Service IPs
+
+If a DHCP container gets a new IP, update `ServiceRepository` in `MediaService.kt` and rebuild.
+Current DHCP services:
+- Jellyseerr — `192.168.12.151`
+- Bazarr — `192.168.12.188`
+- Open WebUI — `192.168.12.223`
+
+Static IPs (100–107, 210–215, 230–231) don't change.
+
+## Project Structure
 
 ```
-android-app/
-├── app/
-│   └── src/main/
-│       ├── java/com/tiamat/mediastack/
-│       │   ├── MainActivity.kt       # Phone/tablet launcher
-│       │   ├── TvMainActivity.kt     # Fire TV / Android TV launcher
-│       │   ├── WebViewActivity.kt    # WebView with D-pad support
-│       │   ├── MediaService.kt       # Data model + ServiceRepository
-│       │   └── ServiceAdapter.kt    # RecyclerView adapter
-│       ├── res/
-│       │   ├── layout/               # XML layouts
-│       │   ├── values/               # strings, colors, themes
-│       │   ├── drawable/             # vector icons
-│       │   └── xml/                  # network_security_config.xml
-│       └── AndroidManifest.xml
-├── build-app.sh                      # Build & sideload script
-└── README.md
+app/src/main/
+├── java/com/tiamat/mediastack/
+│   ├── MainActivity.kt        # Phone/tablet grid launcher
+│   ├── TvMainActivity.kt      # Fire TV D-pad launcher
+│   ├── WebViewActivity.kt     # Fullscreen WebView for services
+│   ├── MediaService.kt        # Service model + ServiceRepository
+│   └── ServiceAdapter.kt      # RecyclerView grid adapter
+├── res/
+│   ├── drawable/               # Service icons (vector XML)
+│   ├── layout/                 # Activity + item layouts
+│   ├── menu/                   # Toolbar overflow menu
+│   ├── values/                 # Colors, strings, themes
+│   └── xml/                    # Network security config
+└── AndroidManifest.xml
 ```

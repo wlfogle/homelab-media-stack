@@ -1,6 +1,7 @@
 package com.tiamat.mediastack
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.tiamat.mediastack.databinding.ItemServiceBinding
@@ -19,33 +20,30 @@ class ServiceAdapter(
             binding.serviceDescription.text = service.description
             binding.serviceIcon.setImageResource(service.iconResId)
 
-            // Category badge colour
-            val badgeColor = when (service.category) {
-                MediaService.Category.MEDIA     -> R.color.category_media
-                MediaService.Category.REQUEST   -> R.color.category_request
-                MediaService.Category.ARR       -> R.color.category_arr
-                MediaService.Category.DOWNLOAD  -> R.color.category_download
-                MediaService.Category.ANALYTICS -> R.color.category_analytics
-                MediaService.Category.DASHBOARD -> R.color.category_dashboard
-                MediaService.Category.NETWORK   -> R.color.category_network
+            // Coming Soon overlay for unavailable services
+            binding.comingSoonOverlay.visibility =
+                if (service.available) View.GONE else View.VISIBLE
+
+            if (service.available) {
+                binding.root.alpha = 1.0f
+                binding.root.setOnClickListener { onClick(service) }
+            } else {
+                binding.root.alpha = 0.5f
+                binding.root.setOnClickListener(null)
+                binding.root.isClickable = false
             }
-            binding.categoryBadge.setBackgroundColor(
-                binding.root.context.getColor(badgeColor)
-            )
-            binding.categoryBadge.text = service.category.name
 
-            binding.root.setOnClickListener { onClick(service) }
-
-            // D-pad focus highlight
+            // D-pad focus highlight (Fire TV)
             binding.root.setOnFocusChangeListener { v, hasFocus ->
-                v.scaleX = if (hasFocus) 1.08f else 1.0f
-                v.scaleY = if (hasFocus) 1.08f else 1.0f
-                v.elevation = if (hasFocus) 16f else 4f
+                if (service.available) {
+                    v.scaleX = if (hasFocus) 1.05f else 1.0f
+                    v.scaleY = if (hasFocus) 1.05f else 1.0f
+                    v.elevation = if (hasFocus) 16f else 4f
+                }
             }
 
-            // Make items focusable for Fire TV D-pad
-            binding.root.isFocusable        = true
-            binding.root.isFocusableInTouchMode = true
+            binding.root.isFocusable = service.available
+            binding.root.isFocusableInTouchMode = service.available
         }
     }
 
@@ -61,8 +59,4 @@ class ServiceAdapter(
     }
 
     override fun getItemCount(): Int = services.size
-
-    fun refresh() {
-        notifyDataSetChanged()
-    }
 }

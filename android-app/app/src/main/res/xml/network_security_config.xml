@@ -21,6 +21,7 @@
         <domain includeSubdomains="false">192.168.12.213</domain>
         <domain includeSubdomains="false">192.168.12.214</domain>
         <domain includeSubdomains="false">192.168.12.215</domain>
+        <domain includeSubdomains="false">192.168.12.217</domain>
         <!-- Media servers (230-231) -->
         <domain includeSubdomains="false">192.168.12.230</domain>
         <domain includeSubdomains="false">192.168.12.231</domain>

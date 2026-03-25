@@ -9,13 +9,12 @@ import com.tiamat.mediastack.databinding.ActivityTvMainBinding
 
 /**
  * Fire TV / Android TV leanback launcher.
- * Shows a D-pad-navigable grid of media services.
- * Each card opens WebViewActivity in fullscreen.
+ * D-pad-navigable grid of content services.
+ * Each card opens WebViewActivity to search & add content.
  */
 class TvMainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTvMainBinding
-    private lateinit var adapter: ServiceAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,31 +22,29 @@ class TvMainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val services = ServiceRepository.getServices()
-
-        adapter = ServiceAdapter(services) { service ->
-            val intent = Intent(this, WebViewActivity::class.java).apply {
-                putExtra(WebViewActivity.EXTRA_URL,   service.url)
+        val adapter = ServiceAdapter(services) { service ->
+            startActivity(Intent(this, WebViewActivity::class.java).apply {
+                putExtra(WebViewActivity.EXTRA_URL, service.url)
                 putExtra(WebViewActivity.EXTRA_TITLE, service.name)
-            }
-            startActivity(intent)
+            })
         }
 
-        // 4-column grid looks great on a TV
-        binding.recyclerView.layoutManager = GridLayoutManager(this, 4)
+        binding.recyclerView.layoutManager = GridLayoutManager(this, 3)
         binding.recyclerView.adapter = adapter
 
-        // Give the first item focus so D-pad works immediately
-        binding.recyclerView.post {
-            binding.recyclerView.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
+        // Give the first available item D-pad focus
+        val firstAvailable = services.indexOfFirst { it.available }
+        if (firstAvailable >= 0) {
+            binding.recyclerView.post {
+                binding.recyclerView.findViewHolderForAdapterPosition(firstAvailable)
+                    ?.itemView?.requestFocus()
+            }
         }
     }
 
-    // Allow back/home from anywhere in the activity
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
-            KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_HOME -> {
-                finish(); true
-            }
+            KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_HOME -> { finish(); true }
             else -> super.onKeyDown(keyCode, event)
         }
     }
