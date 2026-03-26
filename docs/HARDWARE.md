@@ -22,10 +22,10 @@
 
 ## Recommended Upgrades
 
-1. **RAM** ⚠️ HIGH PRIORITY: 2×32GB DDR4-3200 CL16 (e.g. Corsair CMK64GX4M2E3200C16)
-   - Currently 8GB — only 2.5GB free with stack running. Gaming VM (VM-901) requires stopping CTs first.
-   - B450M DS3H supports up to 128GB across 4 slots (3 slots free)
-   - Must upgrade before running VM-901 alongside full media stack simultaneously
+1. **RAM** ✅ UPGRADED: 32GB DDR4-3200 (was 8GB, upgraded 2026-03-26)
+   - VM-901 can now run alongside the full media stack
+   - FlareSolverr Cloudflare solving now possible (Chrome headless needs ~2GB)
+   - B450M DS3H supports up to 128GB across 4 slots (2 slots used)
 2. **OS**: Migrated to Proxmox VE ✅
 3. **Storage**: 2TB WD HDD in use for media. 240GB WD SSD (sdb) passed through to VM-901 for games.
 4. **Network**: Use wired Ethernet — avoid Wi-Fi for streaming stability

@@ -1,62 +1,80 @@
 # Troubleshooting Guide
 
-This document serves as a comprehensive guide for troubleshooting common issues encountered while using the Homelab Media Stack. Follow the steps outlined for various categories of issues.
+Troubleshooting for the Tiamat Proxmox media stack (192.168.12.242).
+All commands run via SSH: `ssh root@192.168.12.242`
 
-## Common Errors
-- **Error 1: Service Unavailable**  
-  - **Solution:** Check if the service is running and if the firewall is allowing inbound traffic on the required ports.
+## Container Won't Start
+```bash
+pct start <CTID>
+pct config <CTID>       # check config
+journalctl -u pve* -n 50  # Proxmox logs
+```
 
-- **Error 2: Connection Timeout**  
-  - **Solution:** Verify that the target service is reachable and that there are no network issues. Use ping or traceroute to diagnose connectivity problems.
+## Service Not Responding
+Check if the container is running and the service is up:
+```bash
+pct list                                  # all container status
+pct exec <CTID> -- systemctl status <svc>  # service inside CT
+pct exec <CTID> -- ss -tlnp               # listening ports
+```
 
-## Log Checking
-- Logs are essential for diagnosing problems. Here are the common log locations:
-  - Application Logs: `/var/log/app.log`
-  - System Logs: `/var/log/syslog`
-  - Service-specific Logs: Check documentation for specific log paths.
+Common services:
+- Sonarr (CT-214): `pct exec 214 -- systemctl status sonarr`
+- Radarr (CT-215): `pct exec 215 -- systemctl status radarr`
+- Prowlarr (CT-210): `pct exec 210 -- systemctl status prowlarr`
+- qBittorrent (CT-212): `pct exec 212 -- systemctl status qbittorrent-nox`
+- Jellyfin (CT-231): `pct exec 231 -- systemctl status jellyfin`
 
-- **To Check Logs:**  
-  Use the following command:  
-  ```bash  
-  tail -f /var/log/app.log
-  ```
+## VPN / Kill-Switch Issues
+The download pipeline: qBit → TinyProxy (CT-101:8888) → WireGuard (CT-100) → internet
 
-## Service Restart Procedures
-- If a service is not functioning correctly, you can restart it using the following commands:
-  - For systemd services:
-    ```bash
-    sudo systemctl restart [service_name]
-    ```
-  - For Docker containers:
-    ```bash
-    docker restart [container_name]
-    ```
+```bash
+# 1. Check WireGuard tunnel
+pct exec 100 -- wg show
 
-## Network Tests
-- To diagnose network issues, use the following commands:
-  - **Ping a host:**  
-    ```bash
-    ping [hostname]
-    ```
-  - **Check open ports:**  
-    ```bash
-    netstat -tuln
-    ```
-  - **Traceroute to a destination:**  
-    ```bash
-    traceroute [destination]
-    ```
+# 2. Check TinyProxy is running
+pct exec 101 -- ps aux | grep tinyproxy
 
-## VPN Debugging
-- If you're facing issues with the VPN connection:
-  - Check VPN configurations and ensure credentials are correct.
-  - Use the following command to view VPN logs:
-    ```bash
-    cat /var/log/vpn.log
-    ```
-  - Test connectivity through the VPN:
-    ```bash
-    curl -I [service_url]
-    ```
+# 3. Test VPN exit IP (should NOT be your home IP)
+pct exec 101 -- curl -s https://api.ipify.org
 
-For further assistance, consult the full documentation or reach out to support.
+# 4. Test proxy from qBit container
+pct exec 212 -- curl -s -x http://192.168.12.101:8888 https://api.ipify.org
+
+# 5. If NAT is broken on CT-100 (traffic not forwarding):
+pct exec 100 -- sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward && iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE'
+pct exec 100 -- /etc/init.d/iptables save
+```
+
+## Prowlarr: No Search Results
+- Check indexers: `http://192.168.12.210:9696` → Indexers → Test All
+- Cloudflare-blocked indexers (1337x, EZTV, TorrentGalaxy) need FlareSolverr
+- FlareSolverr status: `curl -s http://192.168.12.102:8191`
+- Re-sync to Sonarr/Radarr: Prowlarr → Settings → Apps → Sync
+
+## Downloads Stuck in qBittorrent
+- Proxy down: check CT-101 TinyProxy (see VPN section above)
+- Wrong category: verify `sonarr` → `/data/torrents/tv`, `radarr` → `/data/torrents/movies`
+- Disk full: `df -h /mnt/hdd` on Proxmox host
+
+## Jellyfin/Plex Missing New Content
+- Content lands in `/mnt/hdd/media/movies` or `/mnt/hdd/media/tv`
+- Jellyfin: Dashboard → Scheduled Tasks → Scan All Libraries
+- Plex: Settings → Libraries → Scan
+- Check bind mounts: `pct config 231 | grep mp`
+
+## Jellyseerr Requests Not Processing
+- Verify Sonarr/Radarr connections: Jellyseerr → Settings → Services
+- Check API keys match (Sonarr: `9e2127824e7446f6a2ddc5da67cfe693`, Radarr: `cc7485c9f5a64f78bfd226ffe23e2991`)
+
+## Container Logs
+```bash
+# Live logs from inside a container
+pct exec <CTID> -- journalctl -f -u <service>
+
+# Proxmox task log
+cat /var/log/pve/tasks/active
+```
+
+## TiVo ARP Poisoning (Fixed)
+Static ARP entries added in `/etc/network/interfaces` for .231, .215, .230 to prevent TiVo (00:11:d9:b8:80:a7) from claiming media stack IPs.

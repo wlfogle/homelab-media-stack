@@ -1,30 +1,43 @@
-# Setting Up RetroArch on Fire TV to Play NES Games
+# RetroArch on Fire TV
 
-## Step 1: Install RetroArch
-1. Go to the Fire TV home screen.
-2. Navigate to the search function and type in "RetroArch".
-3. Select the RetroArch app from the search results and install it.
+Play retro games on Fire TV using ROMs from the laptop NFS share.
 
-## Step 2: Configure Controller Setup
-1. Launch RetroArch after installation.
-2. Select "Settings" from the main menu.
-3. Go to "Input" and then "Input User 1 Binds".
-4. From here, you can configure your controller buttons:
-   - Press the button on your controller that you want to assign to each action.
+## Prerequisites
+- Laptop NFS server running (see `docs/NFS.md`)
+- ROMs at `/media/loufogle/Games/roms` exported to Tiamat
+- Fire TV on same LAN (`192.168.12.x`)
 
-## Step 3: Mounting NFS for ROM Access
-1. Ensure your Fire TV is connected to the same network as your NFS server.
-2. Open the RetroArch app and select "Main Menu" > "Settings" > "Network".
-3. Configure the NFS server settings to point to your ROMs directory.
-4. Go to "Main Menu" > "Load Content" > "Directory" and then navigate to the NFS mount.
+## Install RetroArch
+1. **Fire TV App Store**: Search "RetroArch" and install
+2. Or **sideload** via Downloader app if not in your region
 
-## Step 4: Loading NES Games
-1. Once your NFS is mounted correctly, return to the main menu.
-2. Select "Load Content" > "Scan Directory" to locate your NES games.
-3. Choose a game like "Super Mario Bros" and enjoy playing!
+## Configure ROM Access via NFS
+RetroArch supports NFS natively:
+1. Open RetroArch → **Settings** → **Network**
+2. Under NFS, add server: `192.168.12.172` (laptop IP)
+3. Mount path: `/media/loufogle/Games/roms`
+4. Go to **Load Content** → browse the NFS mount
 
-## Additional Tips
-- Make sure your NES ROMs are in the correct format for RetroArch (typically .nes files).
-- Consider customizing your controller layout based on your preferences for better gameplay experience.
+Alternatively, if ROMs are mounted on Tiamat:
+- NFS server: `192.168.12.242`
+- Mount path: `/mnt/laptop/roms`
 
-Now you are all set to enjoy Retro Gaming on your Fire TV!
+## Controller Setup
+1. RetroArch → **Settings** → **Input** → **Port 1 Controls**
+2. Fire TV remote works for basic navigation
+3. For actual gaming: pair a Bluetooth controller (8BitDo, Xbox, PS4/PS5)
+4. Map buttons under **Port 1 Controls** → **Set All Controls**
+
+## Scan and Play
+1. **Load Content** → **Scan Directory** → select your NFS ROM folder
+2. RetroArch auto-detects consoles (NES, SNES, Genesis, GBA, etc.)
+3. Scanned games appear in **Playlists** organized by system
+4. Select a game → RetroArch downloads the correct core automatically
+
+## Supported Systems
+The retro collection includes NES, SNES, Genesis, GBA, N64, PS1, Arcade, and more. RetroArch handles all of them with downloadable cores.
+
+## Tips
+- Enable **Rewind** in Settings → Frame Throttle for save-state style rewind
+- Set **Video** → **Aspect Ratio** to "Core Provided" for correct display
+- Use **Quick Menu** (hold Start+Select) to save/load states mid-game

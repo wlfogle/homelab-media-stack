@@ -1,17 +1,23 @@
-# Managing the Gaming Collection
+# Gaming
 
-## Overview
-This document provides instructions on how to add and manage the gaming collection located at `/media/loufogle/Data/Downloads/6666 games in 1 Ultimate Classic Games Collection [Retro Legends]`.
+## ROM Collection
+- **Location** (laptop): `/media/loufogle/Games/roms` (89GB, Switch NSPs + retro)
+- **Retro collection**: `/media/loufogle/Data/Downloads/6666 games in 1 Ultimate Classic Games Collection [Retro Legends]`
+- **NFS export**: laptop → Tiamat at `/mnt/laptop/roms` (see `docs/NFS.md`)
 
-## Adding New Games
-1. **Download the Game:** Ensure that the game files are downloaded to the specified directory.
-2. **Organize Files:** Place the game files in appropriate subdirectories if needed.
-3. **Update Metadata:** Update any related metadata files to include the new games, if applicable.
+## Windows Gaming VM (VM-901)
+- Windows 11 26H1 on Tiamat
+- RX 580 GPU passthrough (VFIO)
+- 240GB SSD passthrough (`/dev/sdb`) for game storage
+- 300GB LVM OS disk
+- PlayOn Home saves to `/mnt/hdd/media/playon` → Plex/Jellyfin
+- With 32GB RAM, can now run alongside the full media stack
 
-## Managing the Collection
-- **Backup Regularly:** Ensure that the collection is backed up to prevent data loss.
-- **Check for Updates:** Periodically check for updates to the games and apply them as needed.
+## Fire TV Retro Gaming
+See `docs/RETRO-GAMING.md` for RetroArch setup on Fire TV with NFS ROM access.
 
-## Troubleshooting
-- If a game does not run, check for dependencies or compatibility issues.
-- Refer to the game's documentation for any specific instructions or requirements.
+## Future: Emulation Frontend CT
+Planned Proxmox container for web-based emulation (EmulationStation-Web or RetroArch Web):
+- Mount `/mnt/laptop/roms` via NFS bind
+- Expose via Traefik at `games.tiamat.local`
+- Accessible from Fire TV Silk Browser or TiamatsStack app
