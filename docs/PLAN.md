@@ -170,9 +170,9 @@ Client Devices
 | CT-278 | crowdsec | CrowdSec (IDS/IPS) |
 | CT-279 | tailscale | Tailscale mesh VPN |
 ## Current Deployment Status
-> Last updated: 2026-03-21 — reflects live state of Tiamat
+> Last updated: 2026-03-27 — reflects live state of Tiamat
 
-### Running containers (17 total)
+### Running containers (22 total)
 All containers below are running and passing HTTP health checks.
 
 | CT | Service | Status | Notes |
@@ -191,9 +191,31 @@ All containers below are running and passing HTTP health checks.
 | CT-215 | radarr | ✅ running | HTTP 200 |
 | CT-230 | plex | ✅ running | HTTP 401 (auth required, normal) |
 | CT-231 | jellyfin | ✅ running | HTTP 302 → login |
-| CT-240 | bazarr | ✅ running | HTTP 200, DHCP ≀12.188 |
+| CT-240 | bazarr | ✅ running | HTTP 200, DHCP |
 | CT-242 | jellyseerr | ✅ running | HTTP 307 → /setup — **awaits first-run setup** |
+| CT-244 | tautulli | ✅ running | :8181 — **awaits Plex connection setup** |
+| CT-245 | kometa | ⚠ needs config | restart-loops until config.yml added — see below |
+| CT-275 | homarr | ✅ running | :7575 — ready for dashboard configuration |
+| CT-276 | homepage | ✅ running | :3000 — ready for dashboard configuration |
+| CT-277 | recyclarr | ✅ running | needs recyclarr.yml with Sonarr/Radarr keys |
 | CT-900 | ziggy | ✅ running | Open WebUI + SearXNG |
+
+### Kometa (CT-245) — needs config.yml
+Container is deployed but will restart-loop until configured.
+Create `/opt/appdata/kometa/config.yml` on CT-245 with Plex URL and token:
+```
+pct exec 245 -- bash -c 'mkdir -p /opt/appdata/kometa'
+# Copy/write your config.yml to /opt/appdata/kometa/config.yml
+# Then: pct exec 245 -- docker restart kometa
+```
+See https://kometa.wiki/en/latest/config/configuration/ for full config reference.
+
+### Recyclarr (CT-277) — needs recyclarr.yml
+Sync won't run until `/opt/appdata/recyclarr/recyclarr.yml` is configured.
+```
+pct exec 277 -- docker exec recyclarr recyclarr config create
+# Edit the generated config, then: pct exec 277 -- docker restart recyclarr
+```
 
 ### Traefik (CT-103) — routes live
 All `*.tiamat.local` routes configured and hot-loaded. See `docs/NETWORKING.md` for full table.
