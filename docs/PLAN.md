@@ -192,12 +192,12 @@ All containers below are running and passing HTTP health checks.
 | CT-217 | readarr | ✅ running | :8787 — root folder + qBit + Prowlarr configured |
 | CT-218 | lidarr | ✅ running | :8686 — root folder + qBit + Prowlarr configured |
 | CT-230 | plex | ✅ running | HTTP 401 (auth required, normal) |
-| CT-231 | jellyfin | ✅ running | HTTP 302 → login |
+| CT-231 | jellyfin | ✅ running | jellyfin/jellyfin |
 | CT-232 | audiobookshelf | ✅ running | :13378, /audiobooks bound |
-| CT-233 | calibre-web | ✅ running | :8083 HTTP 302, /books bound — **set db path to /books/metadata.db on first login** |
+| CT-233 | calibre-web | ✅ running | calibre/calibre — DB path pending laptop NFS (set /calibre at /admin/dbconfig) |
 | CT-240 | bazarr | ✅ running | HTTP 200 |
-| CT-242 | jellyseerr | ✅ running | HTTP 307 → /setup — **awaits first-run setup** |
-| CT-244 | tautulli | ✅ running | :8181 — **awaits Plex connection setup** |
+| CT-242 | jellyseerr | ✅ running | configured: Jellyfin + Sonarr + Radarr, library scan triggered |
+| CT-244 | tautulli | ✅ running | :8181 connected=True (Plex 192.168.12.230:32400) |
 | CT-245 | kometa | ⚠ needs config | restart-loops until config.yml added — see below |
 | CT-275 | homarr | ✅ running | :7575 — ready for dashboard configuration |
 | CT-276 | homepage | ✅ running | :3000 — ready for dashboard configuration |
