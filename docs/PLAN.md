@@ -137,8 +137,8 @@ Client Devices
 |----|----------|----|-----|------|
 | CT-230 | plex | 192.168.12.230 | 8GB | 32400 |
 | CT-231 | jellyfin | 192.168.12.231 | 4GB | 8096 |
-| CT-232 | audiobookshelf | DHCP | 2GB | 13378 |
-| CT-233 | calibre-web | DHCP | 2GB | 8083 |
+| CT-232 | audiobookshelf | 192.168.12.232 | 2GB | 13378 |
+| CT-233 | calibre-web | 192.168.12.233 | 2GB | 8083 |
 | CT-234 | iptv-proxy | DHCP | 512MB | — |
 | CT-235 | tvheadend | DHCP | 2GB | 9981 |
 | CT-236 | tdarr-server | DHCP | 4GB | 8265 |
@@ -172,26 +172,30 @@ Client Devices
 ## Current Deployment Status
 > Last updated: 2026-03-27 — reflects live state of Tiamat
 
-### Running containers (22 total)
+### Running containers (27 total)
 All containers below are running and passing HTTP health checks.
 
 | CT | Service | Status | Notes |
 |----|---------|--------|-------|
 | CT-100 | wireguard | ✅ running | |
 | CT-101 | wg-proxy | ✅ running | |
-| CT-102 | flaresolverr | ✅ running | |
+| CT-102 | flaresolverr | ✅ running | Docker v3.4.6 (switched from native) |
 | CT-103 | traefik | ✅ running | 13 routes configured via file provider |
 | CT-104 | vaultwarden | ✅ running | |
 | CT-105 | valkey | ✅ running | |
 | CT-106 | postgresql | ✅ running | |
 | CT-107 | authentik | ✅ running | |
-| CT-210 | prowlarr | ✅ running | HTTP 200 |
-| CT-212 | qbittorrent | ✅ running | |
+| CT-210 | prowlarr | ✅ running | Sonarr + Radarr + Readarr + Lidarr synced |
+| CT-212 | qbittorrent | ✅ running | categories: sonarr/radarr/readarr/lidarr |
 | CT-214 | sonarr | ✅ running | HTTP 200 |
 | CT-215 | radarr | ✅ running | HTTP 200 |
+| CT-217 | readarr | ✅ running | :8787 — root folder + qBit + Prowlarr configured |
+| CT-218 | lidarr | ✅ running | :8686 — root folder + qBit + Prowlarr configured |
 | CT-230 | plex | ✅ running | HTTP 401 (auth required, normal) |
 | CT-231 | jellyfin | ✅ running | HTTP 302 → login |
-| CT-240 | bazarr | ✅ running | HTTP 200, DHCP |
+| CT-232 | audiobookshelf | ✅ running | :13378, /audiobooks bound |
+| CT-233 | calibre-web | ✅ running | :8083 HTTP 302, /books bound — **set db path to /books/metadata.db on first login** |
+| CT-240 | bazarr | ✅ running | HTTP 200 |
 | CT-242 | jellyseerr | ✅ running | HTTP 307 → /setup — **awaits first-run setup** |
 | CT-244 | tautulli | ✅ running | :8181 — **awaits Plex connection setup** |
 | CT-245 | kometa | ⚠ needs config | restart-loops until config.yml added — see below |
@@ -228,8 +232,26 @@ Complete setup at `http://192.168.12.151:5055` (or `http://jellyseerr.tiamat.loc
 - Connect to Sonarr: `http://192.168.12.214:8989`
 - Connect to Radarr: `http://192.168.12.215:7878`
 
+### Stale ARP issue — router
+Several static-IP CTs experience stale ARP entries causing connectivity failures until the host ARP cache is flushed.
+Symptom: `HTTP:000` from host but CT-to-CT works fine. Fix: `arp -d <IP>` on the Proxmox host.
+New static-IP CTs should get internet via DHCP first (so the router registers the MAC), then switch to static.
+See `/etc/pve/lxc/<ctid>.conf` — change `ip=dhcp` ↔ `ip=192.168.12.X/24` as needed.
+
+### NFS laptop mounts — pending
+All 5 laptop NFS shares are configured in `/etc/fstab` using `192.168.12.205` (laptop Ethernet).
+Mounts fail when laptop is off (expected — `soft,_netdev` prevents boot hang).
+WiFi (.172) is blocked by AP isolation — always use Ethernet (.205).
+When laptop comes online: `mount -a` or `for mp in calibre cookbooks videos isos roms; do mount /mnt/laptop/$mp; done`
+CT-233 calibre-web needs `mp1` added to `/etc/pve/lxc/233.conf` once calibre mounts:
+```
+echo 'mp1: /mnt/laptop/calibre,mp=/calibre' >> /etc/pve/lxc/233.conf
+echo 'mp2: /mnt/laptop/cookbooks,mp=/cookbooks' >> /etc/pve/lxc/233.conf
+pct restart 233
+```
+
 ### Backup cron — active
-Vzdump of all 17 CTs runs daily at 03:00 → `/mnt/hdd/backups/`.
+Vzdump of all 27 CTs runs daily at 03:00 → `/mnt/hdd/backups/`.
 See `docs/BACKUPS.md` for full scope and restore instructions.
 
 ### Tiamat desktop (Openbox autologin)
