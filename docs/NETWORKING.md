@@ -45,7 +45,7 @@ iface vmbr0 inet static
 | CT-101 `wg-proxy` | WireGuard client + TinyProxy | `http://192.168.12.101:8888` |
 | CT-102 `flaresolverr` | Cloudflare bypass | `http://192.168.12.102:8191` |
 | CT-103 `traefik` | Reverse proxy | `:80`, `:443`, `:8080` |
-| CT-104 `vaultwarden` | Password manager backend | `http://192.168.12.104` |
+| CT-104 `vaultwarden` | Password manager backend | `https://192.168.12.104` (Caddy TLS) |
 | CT-105 `valkey` | Redis-compatible cache | `:6379` |
 | CT-106 `postgresql` | Database | `:5432` |
 | CT-107 `authentik` | SSO | `http://192.168.12.107:9000` |
@@ -120,7 +120,8 @@ Dynamic route files live in `infrastructure/traefik/dynamic/`.
 | `qbittorrent.tiamat.local` | qBittorrent (CT-212) | `192.168.12.212:8080` |
 | `bazarr.tiamat.local` | Bazarr (CT-240) | `192.168.12.188:6767` \* |
 | `jellyseerr.tiamat.local` | Jellyseerr (CT-242) | `192.168.12.151:5055` \* |
-| `vault.tiamat.local` | Vaultwarden (CT-104) | `192.168.12.104:80` |
+| `vault.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (via serversTransport skip-verify) |
+| `vaultwarden.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (alias) |
 | `auth.tiamat.local` | Authentik (CT-107) | `192.168.12.107:9000` |
 
 \* DHCP addresses — set static DHCP reservations on router for CT-240 and CT-242,

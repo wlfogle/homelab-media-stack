@@ -5,7 +5,7 @@ http:
       entryPoints: [web]
       service: api@internal
     vaultwarden:
-      rule: "Host(`vault.tiamat.local`)"
+      rule: "Host(`vault.tiamat.local`) || Host(`vaultwarden.tiamat.local`)"
       entryPoints: [web]
       service: vaultwarden
     authentik:
@@ -16,9 +16,14 @@ http:
   services:
     vaultwarden:
       loadBalancer:
+        serversTransport: insecure-skip-verify@file
         servers:
-          - url: "http://192.168.12.104:80"
+          - url: "https://192.168.12.104:443"
     authentik:
       loadBalancer:
         servers:
           - url: "http://192.168.12.107:9000"
+
+  serversTransports:
+    insecure-skip-verify:
+      insecureSkipVerify: true

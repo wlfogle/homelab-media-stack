@@ -1,16 +1,8 @@
-# Caddy reverse proxy for Vaultwarden
-# Uses self-signed cert for LAN access (no domain needed)
-# If you have a real domain, replace the IP with your domain and remove tls internal
+# Caddy reverse proxy for Vaultwarden (CT-104 LXC)
+# Provides HTTPS with internal TLS certs for SubtleCrypto API support
+# Vaultwarden listens on localhost:8080, Caddy terminates TLS on :443
 
-{
-  # Disable ACME for LAN-only (self-signed)
-  # Remove this block if using a real domain
-  local_certs
-}
-
-https://192.168.12.20 {
-  tls internal
-
-  reverse_proxy /notifications/hub vaultwarden:3012
-  reverse_proxy vaultwarden:80
+https://localhost, https://192.168.12.104, https://vaultwarden.tiamat.local {
+	tls internal
+	reverse_proxy localhost:8080
 }

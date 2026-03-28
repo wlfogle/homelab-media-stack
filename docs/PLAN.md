@@ -8,7 +8,7 @@ Infrastructure (static IPs 192.168.12.100–107)
 ├── CT-101 wg-proxy       192.168.12.101   WireGuard client + TinyProxy :8888 (kill-switch)
 ├── CT-102 flaresolverr   192.168.12.102   FlareSolverr :8191 (Cloudflare bypass)
 ├── CT-103 traefik        192.168.12.103   Traefik reverse proxy :80/:443/:8080
-├── CT-104 vaultwarden    192.168.12.104   Vaultwarden :80
+├── CT-104 vaultwarden    192.168.12.104   Vaultwarden :443 (Caddy TLS) / :8080 (backend)
 ├── CT-105 valkey         192.168.12.105   Valkey (Redis) :6379
 ├── CT-106 postgresql     192.168.12.106   PostgreSQL :5432
 └── CT-107 authentik      192.168.12.107   Authentik SSO :9000
@@ -113,7 +113,7 @@ Client Devices
 | CT-101 | wg-proxy | 192.168.12.101 | Alpine | 512MB | wireguard-tools (client) + TinyProxy :8888 |
 | CT-102 | flaresolverr | 192.168.12.102 | Debian | 1GB | FlareSolverr :8191 |
 | CT-103 | traefik | 192.168.12.103 | Alpine | 512MB | Traefik v2 :80/:443/:8080 |
-| CT-104 | vaultwarden | 192.168.12.104 | Ubuntu | 1GB | Vaultwarden :80 |
+| CT-104 | vaultwarden | 192.168.12.104 | Debian | 1GB | Vaultwarden :8080 + Caddy :443 (internal TLS) |
 | CT-105 | valkey | 192.168.12.105 | Alpine | 1GB | Valkey (Redis fork) :6379 |
 | CT-106 | postgresql | 192.168.12.106 | Alpine | 1GB | PostgreSQL :5432 |
 | CT-107 | authentik | 192.168.12.107 | Ubuntu | 1GB | Authentik SSO :9000 |
