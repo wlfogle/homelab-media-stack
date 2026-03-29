@@ -19,7 +19,7 @@ Download stack (static IPs 192.168.12.210–224)
 ├── CT-212 qbittorrent    192.168.12.212   qBittorrent :8080  ← proxied via CT-101
 ├── CT-213 rdt-client     192.168.12.213   rdt-client :6500   ← Real-Debrid download client
 ├── CT-214 sonarr         192.168.12.214   Sonarr :8989
-├── CT-215 radarr         192.168.12.215   Radarr :7878
+├── CT-215 radarr         192.168.12.225   Radarr :7878  ← moved from .215 (HDHR conflict)
 ├── CT-216 proxarr        192.168.12.216   Proxarr (proxy routing for *arr)
 ├── CT-217 readarr        192.168.12.217   Readarr :8787
 ├── CT-219 whisparr       192.168.12.219   Whisparr :6969
@@ -125,7 +125,7 @@ Client Devices
 | CT-212 | qbittorrent | 192.168.12.212 | 2GB | 8080 |
 | CT-213 | rdt-client | 192.168.12.213 | 1GB | 6500 |
 | CT-214 | sonarr | 192.168.12.214 | 1GB | 8989 |
-| CT-215 | radarr | 192.168.12.215 | 1GB | 7878 |
+| CT-215 | radarr | 192.168.12.225 | 1GB | 7878 |
 | CT-216 | proxarr | 192.168.12.216 | 512MB | — |
 | CT-217 | readarr | 192.168.12.217 | 512MB | 8787 |
 | CT-219 | whisparr | 192.168.12.219 | 512MB | 6969 |

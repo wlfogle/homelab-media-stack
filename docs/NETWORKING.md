@@ -57,7 +57,7 @@ iface vmbr0 inet static
 | Jackett (CT-211) | `http://192.168.12.211:9117` |
 | qBittorrent (CT-212) | `http://192.168.12.212:8080` |
 | Sonarr (CT-214) | `http://192.168.12.214:8989` |
-| Radarr (CT-215) | `http://192.168.12.215:7878` |
+| Radarr (CT-215) | `http://192.168.12.225:7878` |
 | Readarr (CT-217) | `http://192.168.12.217:8787` |
 | Whisparr (CT-219) | `http://192.168.12.219:6969` |
 | Sonarr Extended (CT-220) | `http://192.168.12.220:8989` |
