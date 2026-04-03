@@ -1,0 +1,2 @@
+VM 901 qmp command 'set_password' failed - Could not set password
+TASK ERROR: Failed to run vncproxy.
