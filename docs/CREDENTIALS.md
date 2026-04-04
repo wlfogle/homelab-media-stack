@@ -12,7 +12,7 @@
 | qBittorrent | http://192.168.12.212:8080 | admin / adminadmin |
 | Prowlarr | http://192.168.12.210:9696 | API: 6719026a4a5042a99897597122fa4495 |
 | Sonarr | http://192.168.12.214:8989 | API: 9e2127824e7446f6a2ddc5da67cfe693 |
-| Radarr | http://192.168.12.215:7878 | API: cc7485c9f5a64f78bfd226ffe23e2991 |
+| Radarr | http://192.168.12.225:7878 | API: cc7485c9f5a64f78bfd226ffe23e2991 |
 | Readarr | http://192.168.12.217:8787 | API: 19566aa7fb90487ebd2c643ad8c6595d |
 | Lidarr | http://192.168.12.218:8686 | API: (check config) |
 
