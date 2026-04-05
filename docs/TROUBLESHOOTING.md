@@ -4,7 +4,8 @@
 Use local login: click **"Sign in with Seerr"** on the login page.
 - Email: `seerr@local` | Password: `seerr`
 - Jellyfin login returns 500 when Jellyfin is actively streaming (DbUpdateConcurrencyException). Use local login instead.
-- Note: Prowlarr SQLite DB locks periodically — restart Prowlarr if searches stop working.
+- Note: Prowlarr/Radarr SQLite DB locks periodically under heavy search load — restart the service if it stops responding.
+  Fix: `pct exec <CT_ID> -- systemctl restart <service>` then `sync && echo 3 > /proc/sys/vm/drop_caches` on Proxmox host if still stuck.
 
 Troubleshooting for the Tiamat Proxmox media stack (192.168.12.242).
 All commands run via SSH: `ssh root@192.168.12.242`
