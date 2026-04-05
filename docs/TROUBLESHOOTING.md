@@ -1,11 +1,10 @@
 # Troubleshooting
 
-## Seerr Login — KNOWN ISSUE (2026-04-05)
-Seerr local login (seerr/seerr) and Jellyfin login both fail after fresh install.
-- Jellyfin login returns 500 (DbUpdateConcurrencyException) especially when Jellyfin is actively streaming.
-- Local login ("Sign in with Seerr") also fails — root cause not yet identified.
-- **Fix needed**: Investigate Seerr auth flow for local accounts, or fix Jellyfin DB concurrency issue permanently.
-- Workaround: Restart Jellyfin when NOT streaming, then immediately try Jellyfin login in Seerr.
+## Seerr Login (2026-04-05)
+Use local login: click **"Sign in with Seerr"** on the login page.
+- Email: `seerr@local` | Password: `seerr`
+- Jellyfin login returns 500 when Jellyfin is actively streaming (DbUpdateConcurrencyException). Use local login instead.
+- Note: Prowlarr SQLite DB locks periodically — restart Prowlarr if searches stop working.
 
 Troubleshooting for the Tiamat Proxmox media stack (192.168.12.242).
 All commands run via SSH: `ssh root@192.168.12.242`
