@@ -1,24 +1,20 @@
-# Jellyseerr — CT-242 (jellyseerr, DHCP ~192.168.12.151)
-# Deployed inside CT-242 as a Docker container.
-# Live compose file: /opt/jellyseerr/docker-compose.yml on CT-242
-# First-run setup: http://<CT-242-IP>:5055  (connect to Jellyfin at 192.168.12.231:8096)
+# Seerr (Jellyseerr fork) — CT-242 (privileged LXC, static 192.168.12.151)
+# NATIVE install — no Docker. Installed via scripts/install-seerr-ct242.sh
+# Service: systemctl status seerr  (inside CT-242)
+# Config:  /opt/seerr/config/settings.json  (inside CT-242)
+# First-run setup: http://192.168.12.151:5055 — sign in with Jellyfin (jellyfin/jellyfin)
 # Traefik route: http://jellyseerr.tiamat.local → CT-242:5055
+#
+# Connected services (pre-configured in settings.json):
+#   Jellyfin: 192.168.12.231:8096
+#   Radarr:   192.168.12.225:7878
+#   Sonarr:   192.168.12.214:8989
+#
+# NOTE: This docker-compose.yml is kept for reference only.
+# CT-242 was converted from Docker to native on 2026-04-05 to fix
+# Docker-in-unprivileged-LXC port mapping issues.
 
-services:
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    environment:
-      - TZ=America/New_York
-      - PORT=5055
-    ports:
-      - '5055:5055'
-    volumes:
-      - /opt/jellyseerr/config:/app/config
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5055/api/v1/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+# services:
+#   jellyseerr:
+#     image: fallenbagel/jellyseerr:latest
+#     (not used — native install)

@@ -19,7 +19,7 @@
 ## Media Management
 | Service | URL | User | Pass |
 |---|---|---|---|
-| Jellyseerr | http://192.168.12.151:5055 | jellyfin (Jellyfin login) | jellyfin |
+| Seerr | http://192.168.12.151:5055 | jellyfin (Jellyfin login) | jellyfin |
 | Tautulli | http://192.168.12.169:8181 | tautulli | tautulli |
 | Bazarr | http://192.168.12.240:6767 | none | — |
 | Calibre-Web | http://192.168.12.233:8083 | calibre | calibre |

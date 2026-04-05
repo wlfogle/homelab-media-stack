@@ -115,17 +115,18 @@ Dynamic route files live in `infrastructure/traefik/dynamic/`.
 | `jellyfin.tiamat.local` | Jellyfin (CT-231) | `192.168.12.231:8096` |
 | `plex.tiamat.local` | Plex (CT-230) | `192.168.12.230:32400` |
 | `sonarr.tiamat.local` | Sonarr (CT-214) | `192.168.12.214:8989` |
-| `radarr.tiamat.local` | Radarr (CT-215) | `192.168.12.215:7878` |
+| `radarr.tiamat.local` | Radarr (CT-215) | `192.168.12.225:7878` |
 | `prowlarr.tiamat.local` | Prowlarr (CT-210) | `192.168.12.210:9696` |
 | `qbittorrent.tiamat.local` | qBittorrent (CT-212) | `192.168.12.212:8080` |
 | `bazarr.tiamat.local` | Bazarr (CT-240) | `192.168.12.188:6767` \* |
-| `jellyseerr.tiamat.local` | Jellyseerr (CT-242) | `192.168.12.151:5055` \* |
+| `jellyseerr.tiamat.local` | Seerr/Jellyseerr (CT-242) | `192.168.12.151:5055` \* |
 | `vault.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (via serversTransport skip-verify) |
 | `vaultwarden.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (alias) |
 | `auth.tiamat.local` | Authentik (CT-107) | `192.168.12.107:9000` |
 
-\* DHCP addresses — set static DHCP reservations on router for CT-240 and CT-242,
-then update `infrastructure/traefik/dynamic/media-management.yml` if they change.
+\* CT-242 has static IP 192.168.12.151. CT-240 is DHCP — set a static reservation on the router.
+CT-242 runs Seerr natively (no Docker). Proxmox vmbr0 has static ARP for Radarr: `ip neigh replace 192.168.12.225 dev vmbr0 lladdr BC:24:11:2A:83:BB nud permanent`
+then update `infrastructure/traefik/dynamic/media-management.yml` if IPs change.
 
 To add a new route, drop a YAML file in `/etc/traefik/dynamic/` on CT-103.
 Traefik hot-reloads it immediately (no restart needed).
