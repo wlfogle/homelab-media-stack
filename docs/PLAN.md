@@ -254,10 +254,11 @@ pct restart 233
 Vzdump of all 27 CTs runs daily at 03:00 → `/mnt/hdd/backups/`.
 See `docs/BACKUPS.md` for full scope and restore instructions.
 
-### Tiamat desktop (Openbox autologin)
-LightDM configured for root autologin → Openbox session on `:0`.
+### Tiamat desktop (Openbox + LXPanel)
+TigerVNC on `:1` (port 5901) with noVNC web interface on `:6080`.
+DE: Openbox + LXPanel (same as Bahamut).
 Opera launches on session start with 5 service tabs (Traefik dashboard, Jellyfin, Sonarr, Radarr, Prowlarr).
-Autostart: `~/.config/openbox/autostart`
+Config: `~/.config/tigervnc/xstartup`
 
 ### IP conflict note — .231
 MAC `00:11:d9:b8:80:a7` (TiVo OUI) was previously flagged squatting on `.231`.
