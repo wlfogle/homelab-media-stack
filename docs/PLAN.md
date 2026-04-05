@@ -254,9 +254,9 @@ pct restart 233
 Vzdump of all 27 CTs runs daily at 03:00 → `/mnt/hdd/backups/`.
 See `docs/BACKUPS.md` for full scope and restore instructions.
 
-### Tiamat desktop (Openbox + LXPanel)
+### Tiamat desktop (LXDE)
 TigerVNC on `:1` (port 5901) with noVNC web interface on `:6080`.
-DE: Openbox + LXPanel (same as Bahamut).
+DE: LXDE (same as Bahamut).
 Opera launches on session start with 5 service tabs (Traefik dashboard, Jellyfin, Sonarr, Radarr, Prowlarr).
 Config: `~/.config/tigervnc/xstartup`
 
@@ -335,6 +335,12 @@ If TiVo comes back online and conflicts, add a DHCP reservation on the router to
 35. Configure HA integrations: Plex, Jellyfin, AdGuard, Alexa, WireGuard
 36. Set up VM-200 Alexa media bridge for voice control
     - See awesome-stack repo homeassistant-configs/
+Status:
+- Home Assistant currently running at `http://192.168.12.123:8123`
+- Traefik route `http://ha.tiamat.local` is live
+- SSH add-on (`core_ssh`) is installed and running
+- HACS files are installed
+- Remaining manual work is in `docs/TIAMAT-PHASE10.md` (static IP, HACS UI onboarding, AdGuard/Alexa integrations)
 ## VPN Kill Switch Verification
 ```bash
 # Confirm traffic exits through CT-100 VPN, not home IP
