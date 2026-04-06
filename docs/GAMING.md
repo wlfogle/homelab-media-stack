@@ -44,6 +44,16 @@ Switch NSPs from laptop `/media/loufogle/Games/roms/`.
 - See `docs/RETRO-GAMING.md` for detailed Fire TV setup
 
 ## Laptop Gaming
-- **RetroPie 4.8.11** installed at `/opt/retropie/` (35 systems, 25 libretro cores)
-- **Ryubing** (Switch emulator) via snap
-- **Sunshine** (planned) for game streaming to Fire TVs
+- **Ryubing** (Switch emulator) via snap: `/snap/bin/ryubing-emulator`
+- **Sunshine** game-stream host — running as user service
+  - Installed: `~/.local/bin/Sunshine.AppImage` (official LizardByte AppImage)
+  - Service: `sunshine-appimage.service` (enabled, starts with graphical session)
+  - Web UI: `https://localhost:47990` (credentials: sunshine / sunshine — change after first login)
+  - Configured apps: Desktop, Switch (Ryubing), Steam Big Picture
+  - Required: Ubuntu Toolchain PPA (`ppa:ubuntu-toolchain-r/test`) for libstdc++6 ≥ GLIBCXX_3.4.32
+
+### Streaming to Moonlight clients
+- Install **Moonlight** on Fire TV / phone / another laptop
+- Connect to laptop IP (LAN) or Tailscale IP (remote)
+- Pair once via PIN shown in Sunshine web UI
+- Launch "Switch (Ryubing)" app directly from Moonlight
