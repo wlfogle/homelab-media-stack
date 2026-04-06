@@ -1,180 +1,105 @@
 #!/bin/bash
 # =============================================================================
-# stack-watchdog.sh — Full self-healing watchdog for Tiamat media stack
-# Covers: VPN (CT-100/101), FlareSolverr (CT-102), Traefik (CT-103),
-#         qBittorrent (CT-212), Prowlarr (CT-210), Sonarr (CT-214),
-#         Radarr (CT-215), Readarr (CT-217), Lidarr (CT-218),
-#         Plex (CT-230), Jellyfin (CT-231), Jellyseerr (CT-242),
-#         Bazarr (CT-240), Tautulli (CT-244)
-# Deployed as: /usr/local/bin/stack-watchdog.sh
-# Timer:       stack-watchdog.timer (every 5 min)
-# Log:         /var/log/stack-watchdog.log
+# stack-watchdog.sh — timeout-safe self-healing watchdog for Tiamat media stack
 # =============================================================================
 LOG=/var/log/stack-watchdog.log
 exec >> "$LOG" 2>&1
 echo "--- watchdog run $(date) ---"
 
-# ── helpers ──────────────────────────────────────────────────────────────────
 ct_running() { pct status "$1" 2>/dev/null | grep -q running; }
-
 http_ok() {
   CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$1" 2>/dev/null)
-  [ "$CODE" = "200" ] || [ "$CODE" = "301" ] || [ "$CODE" = "302" ]
+  [ "$CODE" = "200" ] || [ "$CODE" = "301" ] || [ "$CODE" = "302" ] || [ "$CODE" = "307" ] || [ "$CODE" = "401" ]
 }
-
+run_pct() {
+  local secs=$1
+  shift
+  timeout "$secs" pct exec "$@" 2>/dev/null
+}
 ensure_ct_running() {
-  local ID=$1 NAME=$2
-  if ! ct_running "$ID"; then
-    echo "[CRIT] CT-$ID ($NAME) not running — starting"
-    pct start "$ID" 2>/dev/null
-    sleep 15
+  local id=$1
+  local name=$2
+  if ! ct_running "$id"; then
+    echo "[CRIT] CT-$id ($name) not running — starting"
+    timeout 20 pct start "$id" 2>/dev/null || true
+    sleep 10
   fi
 }
 
-# ── Tier 1: CT-100 WireGuard server ──────────────────────────────────────────
+# CT-100 WireGuard server
 ensure_ct_running 100 wireguard
-
-pct exec 100 -- sh -c '
-  # Ensure ip_forward
+run_pct 20 100 -- sh -c '
   echo 1 > /proc/sys/net/ipv4/ip_forward
-  # Idempotent NAT rule
   iptables -t nat -C POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE 2>/dev/null || \
     iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
-  # Ensure WireGuard is up
-  if ! wg show wg0 > /dev/null 2>&1; then
-    wg-quick down wg0 2>/dev/null; sleep 1; wg-quick up wg0
-  fi
-' 2>/dev/null && echo "[OK] CT-100 NAT+WG" || echo "[WARN] CT-100 fix failed"
+  wg show wg0 >/dev/null 2>&1 || { wg-quick down wg0 2>/dev/null; sleep 1; wg-quick up wg0; }
+'
 
-# Persist NAT rule across reboots inside CT-100
-pct exec 100 -- sh -c '
-  rc-update add iptables default 2>/dev/null || true
-  /etc/init.d/iptables save 2>/dev/null || true
-  rc-update add wg-quick.wg0 default 2>/dev/null || true
-' 2>/dev/null
-
-# ── Tier 2: CT-101 WireGuard client + TinyProxy ───────────────────────────────
+# CT-101 WireGuard client + TinyProxy
 ensure_ct_running 101 wg-proxy
+run_pct 20 101 -- sh -c '
+  wg show wg0 >/dev/null 2>&1 || { wg-quick down wg0 2>/dev/null; sleep 1; wg-quick up wg0; }
+  pgrep tinyproxy >/dev/null || { rc-service tinyproxy restart 2>/dev/null || tinyproxy; sleep 2; }
+'
+PROXY_OK=$(run_pct 12 101 -- sh -c 'timeout 8 curl -s -x http://127.0.0.1:8888 https://icanhazip.com 2>/dev/null' | tr -d '[:space:]')
+[ -n "$PROXY_OK" ] && echo "[OK] proxy $PROXY_OK" || echo "[WARN] proxy unavailable"
 
-pct exec 101 -- sh -c '
-  # WireGuard tunnel
-  if ! wg show wg0 > /dev/null 2>&1; then
-    wg-quick down wg0 2>/dev/null; sleep 1; wg-quick up wg0
-    echo "WG restarted"
-  fi
-  # TinyProxy
-  if ! pgrep tinyproxy > /dev/null; then
-    rc-service tinyproxy restart 2>/dev/null || tinyproxy
-    sleep 2
-    pgrep tinyproxy && echo "TinyProxy restarted OK" || echo "TinyProxy start FAIL"
-  fi
-' 2>/dev/null && echo "[OK] CT-101 WG+proxy" || echo "[WARN] CT-101 fix attempted"
-
-# Proxy reachability test (non-hanging)
-PROXY_OK=$(pct exec 101 -- sh -c 'timeout 8 curl -s -x http://127.0.0.1:8888 https://icanhazip.com 2>/dev/null' 2>/dev/null)
-if [ -n "$PROXY_OK" ]; then
-  echo "[OK] Proxy working — exit IP: $PROXY_OK"
-else
-  echo "[WARN] Proxy still unreachable — hard restarting CT-101"
-  pct exec 101 -- sh -c '
-    wg-quick down wg0 2>/dev/null; sleep 2; wg-quick up wg0; sleep 3
-    pkill tinyproxy 2>/dev/null; sleep 1
-    tinyproxy 2>/dev/null || rc-service tinyproxy start 2>/dev/null
-    sleep 3
-  ' 2>/dev/null
-  PROXY_OK=$(pct exec 101 -- sh -c 'timeout 8 curl -s -x http://127.0.0.1:8888 https://icanhazip.com 2>/dev/null' 2>/dev/null)
-  [ -n "$PROXY_OK" ] && echo "[RECOVERED] Proxy now OK: $PROXY_OK" || echo "[CRIT] Proxy still dead after recovery"
-fi
-
-# ── Tier 3: CT-102 FlareSolverr ───────────────────────────────────────────────
+# CT-102 FlareSolverr
 ensure_ct_running 102 flaresolverr
-
 if ! http_ok "http://192.168.12.102:8191"; then
-  echo "[WARN] FlareSolverr down — restarting"
-  pct exec 102 -- bash -c '
-    docker restart flaresolverr 2>/dev/null || \
-    (systemctl restart flaresolverr 2>/dev/null || pkill -f flaresolverr; sleep 2; /opt/flaresolverr/flaresolverr &)
-  ' 2>/dev/null
-  sleep 10
-  http_ok "http://192.168.12.102:8191" && echo "[OK] FlareSolverr recovered" || echo "[CRIT] FlareSolverr still down"
-else
-  echo "[OK] FlareSolverr"
+  echo "[WARN] FlareSolverr down"
+  run_pct 20 102 -- systemctl restart flaresolverr || true
 fi
 
-# ── Tier 4: CT-212 qBittorrent ────────────────────────────────────────────────
+# CT-212 qBittorrent
 ensure_ct_running 212 qbittorrent
-
 if ! http_ok "http://192.168.12.212:8080"; then
-  echo "[WARN] qBit WebUI down — fixing"
-  pct exec 212 -- bash -c '
-    pkill -f qbittorrent 2>/dev/null; sleep 2
-    find / -name "*.lock" -path "*qBittorrent*" -delete 2>/dev/null
-    find / -name "*.lock" -path "*qbittorrent*" -delete 2>/dev/null
-    systemctl restart qbittorrent-nox 2>/dev/null; sleep 6
-    if ! systemctl is-active qbittorrent-nox > /dev/null 2>&1; then
-      nohup qbittorrent-nox --webui-port=8080 > /var/log/qbittorrent.log 2>&1 &
-    fi
-  ' 2>/dev/null
-  sleep 8
-  http_ok "http://192.168.12.212:8080" && echo "[OK] qBit recovered" || echo "[CRIT] qBit still down"
-else
-  echo "[OK] qBit"
+  echo "[WARN] qBit down — fixing"
+  run_pct 25 212 -- bash -lc '
+    pkill -f qbittorrent-nox 2>/dev/null || true
+    find /var/lib/qbittorrent -name "*.lock" -delete 2>/dev/null || true
+    systemctl restart qbittorrent.service 2>/dev/null || true
+    sleep 8
+    systemctl is-active qbittorrent.service >/dev/null 2>&1 || \
+      runuser -u qbittorrent -- /usr/bin/qbittorrent-nox -d --webui-port=8080 --profile=/var/lib/qbittorrent 2>/dev/null || true
+  '
 fi
 
-# ── Tier 5: CT-210 Prowlarr ───────────────────────────────────────────────────
+# CT-210 Prowlarr
 ensure_ct_running 210 prowlarr
-
 if ! http_ok "http://192.168.12.210:9696"; then
   echo "[WARN] Prowlarr down — restarting"
-  pct exec 210 -- systemctl restart prowlarr 2>/dev/null
-  sleep 10
-  http_ok "http://192.168.12.210:9696" && echo "[OK] Prowlarr recovered" || echo "[CRIT] Prowlarr still down"
-else
-  echo "[OK] Prowlarr"
+  run_pct 20 210 -- systemctl restart prowlarr || true
 fi
 
-# ── Tier 6: *arr apps ─────────────────────────────────────────────────────────
-for PAIR in "214:8989:sonarr:sonarr" "215:8989:radarr:radarr" "217:8787:readarr:readarr" "218:8686:lidarr:lidarr"; do
-  CT=${PAIR%%:*}; REST=${PAIR#*:}
-  PORT=${REST%%:*}; REST=${REST#*:}
-  SVC=${REST%%:*}; NAME=${REST#*:}
+# Arr apps
+for PAIR in "214 8989 sonarr sonarr" "215 8989 radarr radarr" "217 8787 readarr readarr" "218 8686 lidarr lidarr"; do
+  set -- $PAIR
+  CT=$1
+  PORT=$2
+  SVC=$3
+  NAME=$4
   IP="192.168.12.$CT"
-
+  [ "$CT" = "215" ] && IP="192.168.12.225"
   ensure_ct_running "$CT" "$NAME"
-
   if ! http_ok "http://$IP:$PORT"; then
-    echo "[WARN] $NAME (CT-$CT) down — restarting"
-    pct exec "$CT" -- systemctl restart "$SVC" 2>/dev/null
-    sleep 10
-    http_ok "http://$IP:$PORT" && echo "[OK] $NAME recovered" || echo "[CRIT] $NAME still down"
-  else
-    echo "[OK] $NAME"
+    echo "[WARN] $NAME down — restarting"
+    run_pct 20 "$CT" -- systemctl restart "$SVC" || true
   fi
 done
 
-# ── Tier 7: Jellyfin ──────────────────────────────────────────────────────────
+# Jellyfin
 ensure_ct_running 231 jellyfin
-
 if ! http_ok "http://192.168.12.231:8096"; then
   echo "[WARN] Jellyfin down — restarting"
-  pct exec 231 -- systemctl restart jellyfin 2>/dev/null
-  sleep 15
-  http_ok "http://192.168.12.231:8096" && echo "[OK] Jellyfin recovered" || echo "[CRIT] Jellyfin still down"
-else
-  echo "[OK] Jellyfin"
+  run_pct 25 231 -- systemctl restart jellyfin || true
 fi
 
-# ── Tier 8: Jellyseerr ────────────────────────────────────────────────────────
+# Jellyseerr
 ensure_ct_running 242 jellyseerr
-
 if ! http_ok "http://192.168.12.151:5055"; then
   echo "[WARN] Jellyseerr down — restarting"
-  pct exec 242 -- bash -c 'docker restart jellyseerr 2>/dev/null || systemctl restart jellyseerr 2>/dev/null' 2>/dev/null
-  sleep 10
-  http_ok "http://192.168.12.151:5055" && echo "[OK] Jellyseerr recovered" || echo "[CRIT] Jellyseerr still down"
-else
-  echo "[OK] Jellyseerr"
+  run_pct 20 242 -- bash -lc 'systemctl restart jellyseerr 2>/dev/null || docker restart jellyseerr 2>/dev/null || true'
 fi
 
 echo "--- watchdog done $(date) ---"
-echo ""
