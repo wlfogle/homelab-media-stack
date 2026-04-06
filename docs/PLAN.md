@@ -265,6 +265,25 @@ MAC `00:11:d9:b8:80:a7` (TiVo OUI) was previously flagged squatting on `.231`.
 Device is currently offline. CT-231 properly owns `.231`.
 If TiVo comes back online and conflicts, add a DHCP reservation on the router to push it elsewhere.
 
+## Container Boot Order (Proxmox startup= settings)
+
+All CTs have `onboot: 1`. The `startup` parameter enforces dependency ordering on every Proxmox boot:
+
+| Tier | Order | CTs | up delay | Reason |
+|------|-------|-----|----------|--------|
+| 1 | 1 | CT-100 wireguard | 30s | VPN server — everything depends on this |
+| 2 | 2 | CT-101 wg-proxy | 30s | TinyProxy kill-switch — qBit needs it up |
+| 3 | 3 | CT-102 flaresolverr | 20s | Prowlarr Cloudflare bypass |
+| 4 | 4 | CT-105 valkey, CT-106 postgresql | 15s | DB/cache infra for Authentik |
+| 5 | 5 | CT-103 traefik, CT-104 vaultwarden, CT-107 authentik | 15–20s | Reverse proxy + SSO |
+| 6 | 6 | CT-212 qbittorrent, CT-210 prowlarr | 20s | Download stack core |
+| 7 | 7 | CT-214 sonarr, CT-215 radarr, CT-217 readarr, CT-218 lidarr | 15s | *arr apps |
+| 8 | 8 | CT-231 jellyfin, CT-230 plex, CT-232 audiobookshelf, CT-233 calibre-web | 10–15s | Media servers |
+| 9 | 9 | CT-242 jellyseerr, CT-240 bazarr, CT-241 overseerr, CT-244 tautulli, CT-245 kometa | 10s | Media management |
+| 10 | 10 | CT-275–280 dashboards, CT-277 recyclarr, CT-278 crowdsec, CT-279 tailscale, CT-900 ziggy | 5s | Tools / monitoring |
+
+To change order: `pct set <CTID> --startup order=N,up=S,down=S`
+
 ## Deployment Order
 ### Phase 1 — Proxmox Host
 1. Boot Tiamat from USB → Proxmox VE 9.0 ISO

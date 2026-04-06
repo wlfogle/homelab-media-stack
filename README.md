@@ -27,7 +27,7 @@ Tiamat (Proxmox) - 192.168.12.242
 └── AI
     └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
 
-Tiamat Desktop: Openbox + LXPanel + Opera (via TigerVNC :5901 / noVNC :6080)
+Tiamat Desktop: LXDE + Opera (via TigerVNC :5901 / noVNC :6080)
 Traefik local DNS: *.tiamat.local → per-service routing
 Backups: daily 3 AM via scripts/backup.sh → /mnt/hdd/backups
 
