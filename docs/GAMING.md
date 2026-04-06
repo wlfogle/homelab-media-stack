@@ -57,3 +57,5 @@ Switch NSPs from laptop `/media/loufogle/Games/roms/`.
 - Connect to laptop IP (LAN) or Tailscale IP (remote)
 - Pair once via PIN shown in Sunshine web UI
 - Launch "Switch (Ryubing)" app directly from Moonlight
+
+> **Full setup guide**: `docs/SUNSHINE-MOONLIGHT.md`
