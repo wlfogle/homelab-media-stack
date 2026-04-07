@@ -54,8 +54,9 @@ iface vmbr0 inet static
 | Service | URL |
 |---|---|
 | Prowlarr (CT-210) | `http://192.168.12.210:9696` |
-| Jackett (CT-211) | `http://192.168.12.211:9117` |
+| Jackett (CT-211) | `http://192.168.12.211:9117` — fallback indexer (native, hdd-ct storage) |
 | qBittorrent (CT-212) | `http://192.168.12.212:8080` |
+| Deluge-fallback (CT-213) | `http://192.168.12.213:8112` — fallback download client (native, hdd-ct storage) |
 | Sonarr (CT-214) | `http://192.168.12.214:8989` |
 | Radarr (CT-215) | `http://192.168.12.225:7878` |
 | Readarr (CT-217) | `http://192.168.12.217:8787` |
@@ -118,6 +119,8 @@ Dynamic route files live in `infrastructure/traefik/dynamic/`.
 | `radarr.tiamat.local` | Radarr (CT-215) | `192.168.12.225:7878` |
 | `prowlarr.tiamat.local` | Prowlarr (CT-210) | `192.168.12.210:9696` |
 | `qbittorrent.tiamat.local` | qBittorrent (CT-212) | `192.168.12.212:8080` |
+| `jackett.tiamat.local` | Jackett (CT-211) | `192.168.12.211:9117` |
+| `deluge.tiamat.local` | Deluge fallback (CT-213) | `192.168.12.213:8112` |
 | `bazarr.tiamat.local` | Bazarr (CT-240) | `192.168.12.188:6767` \* |
 | `jellyseerr.tiamat.local` | Seerr/Jellyseerr (CT-242) | `192.168.12.151:5055` \* |
 | `vault.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (via serversTransport skip-verify) |
