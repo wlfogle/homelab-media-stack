@@ -83,8 +83,17 @@ pct exec <CTID> -- journalctl -f -u <service>
 cat /var/log/pve/tasks/active
 ```
 
-## TiVo ARP Poisoning (Fixed)
-Static ARP entries added in `/etc/network/interfaces` for .231, .215, .230 to prevent TiVo (00:11:d9:b8:80:a7) from claiming media stack IPs.
+## Stale ARP / TiVo ARP Poisoning (Fixed 2026-04-07)
+All 32 container IPs now have permanent ARP entries in `/etc/network/interfaces` via `post-up ip neigh replace ... nud permanent`.
+This prevents stale/failed ARP for every CT — not just the original static-IP ones.
+
+If a new container is added, append its entry to `/etc/network/interfaces` and apply live:
+```bash
+ip neigh replace 192.168.12.X dev vmbr0 lladdr BC:24:11:XX:XX:XX nud permanent
+```
+Get the MAC: `pct exec <CTID> -- cat /sys/class/net/eth0/address`
+
+Original issue: TiVo (00:11:d9:b8:80:a7) was poisoning ARP for .231, .215, .230.
 
 ## FlareSolverr Docker inside LXC (2026-04-06)
 Chrome hangs at "Testing web browser installation" inside Docker-in-LXC without SYS_ADMIN cap.
