@@ -29,7 +29,7 @@ http:
     radarr:
       loadBalancer:
         servers:
-          - url: "http://192.168.12.215:7878"
+          - url: "http://192.168.12.225:7878"
     qbittorrent:
       loadBalancer:
         servers:

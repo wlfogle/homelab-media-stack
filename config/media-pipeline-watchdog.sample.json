@@ -1,5 +1,27 @@
 {
   "stale_hours": 24,
+
+  "vpn_proxy": {
+    "url": "http://192.168.12.101:8888",
+    "test_url": "https://icanhazip.com",
+    "home_ip": ""
+  },
+
+  "jellyfin": {
+    "url": "http://192.168.12.231:8096",
+    "api_key": "CHANGE_ME"
+  },
+
+  "prowlarr": {
+    "url": "http://192.168.12.210:9696",
+    "api_key": "CHANGE_ME"
+  },
+
+  "jellyseerr": {
+    "url": "http://192.168.12.151:5055",
+    "api_key": ""
+  },
+
   "qbittorrent": {
     "host": "192.168.12.212",
     "port": 8080,
@@ -15,6 +37,7 @@
       "adult": "whisparr"
     }
   },
+
   "apps": [
     {
       "name": "Sonarr",
@@ -45,5 +68,6 @@
       "media_kind": "music"
     }
   ],
+
   "hooks": []
 }

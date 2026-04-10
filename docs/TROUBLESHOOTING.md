@@ -74,6 +74,19 @@ pct exec 100 -- /etc/init.d/iptables save
 - Verify Sonarr/Radarr connections: Jellyseerr → Settings → Services
 - Check API keys match (Sonarr: `9e2127824e7446f6a2ddc5da67cfe693`, Radarr: `cc7485c9f5a64f78bfd226ffe23e2991`)
 
+## End-to-End Pipeline Diagnostic
+Run from any LAN machine (laptop, Proxmox host, etc.):
+```bash
+bash scripts/verify-pipeline.sh
+```
+Checks every link: VPN proxy → FlareSolverr → Prowlarr → qBit → Sonarr → Radarr → Jellyseerr → Jellyfin.
+Reports pass/fail/warn per step. Override endpoints via env vars (e.g. `JELLYFIN_URL=http://...`).
+
+To auto-fix what it can:
+```bash
+python3 scripts/media-pipeline-watchdog.py /etc/media-pipeline-watchdog.json
+```
+
 ## Container Logs
 ```bash
 # Live logs from inside a container

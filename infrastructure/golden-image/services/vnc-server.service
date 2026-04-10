@@ -1,0 +1,15 @@
+[Unit]
+Description=x11vnc VNC Server for Golden Image Desktop
+After=x11-display.service
+Requires=x11-display.service
+
+[Service]
+Type=simple
+User=warp
+Environment=DISPLAY=:1
+ExecStart=/usr/bin/x11vnc -display :1 -rfbport 5901 -shared -forever -nopw -xkb
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

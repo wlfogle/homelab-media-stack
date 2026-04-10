@@ -9,7 +9,7 @@ All indexers below are torrent-based and routed through the WireGuard VPN (CT-10
 
 1. Open Prowlarr → **Settings → Apps**
 2. Add **Sonarr**: `http://192.168.12.214:8989` | API Key from Sonarr → Settings → General
-3. Add **Radarr**: `http://192.168.12.215:7878` | API Key from Radarr → Settings → General
+3. Add **Radarr**: `http://192.168.12.225:7878` | API Key from Radarr → Settings → General
 4. Click **Sync App Indexers** — Prowlarr will push all configured indexers automatically
 
 ---

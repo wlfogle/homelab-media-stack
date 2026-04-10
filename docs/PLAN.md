@@ -230,7 +230,7 @@ Docker container deployed (`fallenbagel/jellyseerr:2.7.3`), port 5055 responding
 Complete setup at `http://192.168.12.151:5055` (or `http://jellyseerr.tiamat.local`):
 - Connect to Jellyfin: `http://192.168.12.231:8096`
 - Connect to Sonarr: `http://192.168.12.214:8989`
-- Connect to Radarr: `http://192.168.12.215:7878`
+- Connect to Radarr: `http://192.168.12.225:7878`
 
 ### Stale ARP issue — router
 Several static-IP CTs experience stale ARP entries causing connectivity failures until the host ARP cache is flushed.

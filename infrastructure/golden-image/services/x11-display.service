@@ -1,0 +1,14 @@
+[Unit]
+Description=Xvfb Virtual Display Server for Golden Image Desktop
+After=network.target
+
+[Service]
+Type=simple
+User=warp
+Environment=DISPLAY=:1
+ExecStart=/usr/bin/Xvfb :1 -screen 0 1024x768x24 -ac
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

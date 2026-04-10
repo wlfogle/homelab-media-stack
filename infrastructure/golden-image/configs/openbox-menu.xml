@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="root-menu" label="Applications">
+    <item label="Terminal">
+      <action name="Execute"><execute>xterm</execute></action>
+    </item>
+    <separator />
+    <item label="Agent Status">
+      <action name="Execute"><execute>xterm -e "curl -s http://127.0.0.1:9090/health; echo; read -p 'Press Enter...'"</execute></action>
+    </item>
+    <item label="Agent Comms - Read General">
+      <action name="Execute"><execute>xterm -e "python3 /opt/agent-comms/chat.py read general; read -p 'Press Enter...'"</execute></action>
+    </item>
+    <item label="Service Status">
+      <action name="Execute"><execute>xterm -e "systemctl status warp-agent-bridge x11-display vnc-server openbox-session --no-pager; read -p 'Press Enter...'"</execute></action>
+    </item>
+    <item label="System Info">
+      <action name="Execute"><execute>xterm -e "echo '--- Hostname ---'; hostname; echo '--- IP ---'; hostname -I; echo '--- Memory ---'; free -h; echo '--- Disk ---'; df -h /; echo '--- Uptime ---'; uptime; read -p 'Press Enter...'"</execute></action>
+    </item>
+    <separator />
+    <item label="Restart Warp Bridge">
+      <action name="Execute"><execute>xterm -e "sudo systemctl restart warp-agent-bridge; echo 'Restarted.'; read -p 'Press Enter...'"</execute></action>
+    </item>
+    <separator />
+    <item label="Exit OpenBox">
+      <action name="Exit" />
+    </item>
+  </menu>
+</openbox_menu>

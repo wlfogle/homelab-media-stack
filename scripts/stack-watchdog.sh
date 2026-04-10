@@ -73,7 +73,7 @@ if ! http_ok "http://192.168.12.210:9696"; then
 fi
 
 # Arr apps
-for PAIR in "214 8989 sonarr sonarr" "215 8989 radarr radarr" "217 8787 readarr readarr" "218 8686 lidarr lidarr"; do
+for PAIR in "214 8989 sonarr sonarr" "215 7878 radarr radarr" "217 8787 readarr readarr" "218 8686 lidarr lidarr"; do
   set -- $PAIR
   CT=$1
   PORT=$2

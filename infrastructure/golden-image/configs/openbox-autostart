@@ -1,0 +1,11 @@
+#!/bin/bash
+# OpenBox autostart — Golden Image for Homelab Media Stack
+# Mirrors Bahamut's LXDE-style desktop via OpenBox + lxpanel
+
+export DISPLAY=:1
+
+# Bottom taskbar (Bahamut-style LXDE panel)
+lxpanel --profile default &
+
+# Terminal
+xterm -geometry 100x35+50+50 &

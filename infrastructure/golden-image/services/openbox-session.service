@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenBox Window Manager Session
+After=x11-display.service
+Requires=x11-display.service
+
+[Service]
+Type=simple
+User=warp
+Environment=DISPLAY=:1
+Environment=HOME=/home/warp
+ExecStart=/usr/bin/openbox-session
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

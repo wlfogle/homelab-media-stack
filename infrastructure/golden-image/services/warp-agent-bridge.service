@@ -1,0 +1,16 @@
+[Unit]
+Description=Warp Agent Bridge for Container Self-Healing
+After=network.target
+
+[Service]
+Type=simple
+User=warp
+WorkingDirectory=/opt/warp-agent
+ExecStart=/usr/bin/python3 /opt/warp-agent/warp-agent-bridge.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
