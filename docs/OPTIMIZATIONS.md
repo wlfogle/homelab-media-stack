@@ -1,28 +1,60 @@
-# Optimizations — Tiamat Media Stack
+# Optimizations — Tiamat & Bahamut Media Stack
 
-## Hardware (Current)
+> Last updated: 2026-04-10
+
+## Tiamat — Proxmox VE (192.168.12.242)
+
+### Hardware
 - **CPU**: AMD Ryzen 5 3600, 6c/12t
 - **RAM**: 32GB DDR4-3200 (upgraded from 8GB)
 - **Storage**: 240GB SSD (OS) + 2TB HDD (`/mnt/hdd` — media + downloads)
 - **GPU**: RX 580 4GB (VFIO passthrough to VM-901)
 - **Network**: Gigabit Ethernet
 
-## Container RAM Allocation
-With 32GB, recommended allocation:
+### Container RAM Allocation (applied 2026-04-10)
 
-| Container | Current | Recommended | Notes |
-|-----------|---------|-------------|-------|
-| CT-230 Plex | 8GB | 8GB | Transcoding benefits from RAM |
-| CT-231 Jellyfin | 4GB | 4GB | Hardware transcode not available (GPU passed through) |
-| CT-212 qBittorrent | 2GB | 2GB | Sufficient for heavy downloading |
-| CT-214 Sonarr | 1GB | 2GB | Larger libraries benefit |
-| CT-215 Radarr | 1GB | 2GB | Larger libraries benefit |
-| CT-210 Prowlarr | 1GB | 1GB | Lightweight |
-| CT-102 FlareSolverr | 1GB | 2GB | Chrome headless needs RAM for Cloudflare solving |
-| VM-901 Windows | 8GB | 12GB | Gaming VM — can now run alongside stack |
-| Infrastructure (100-107) | ~4GB total | ~4GB | WG, Traefik, Authentik, etc. |
+| Container | RAM | Swap | Notes |
+|-----------|-----|------|-------|
+| CT-100 wireguard | 768MB | 256MB | Bumped from 512MB (was at 90%+ usage) |
+| CT-101 wg-proxy | 768MB | 256MB | Bumped from 512MB (was at 90%+ usage) |
+| CT-103 traefik | 1024MB | 256MB | Bumped from 512MB (was at 90%+ usage) |
+| CT-214 Sonarr | 2048MB | 512MB | Bumped from 1GB for larger libraries |
+| CT-215 Radarr | 2048MB | 512MB | Bumped from 1GB for larger libraries |
+| CT-230 Plex | 8GB | — | Transcoding benefits from RAM |
+| CT-231 Jellyfin | 4GB | — | CPU transcode, prefer direct play |
+| CT-212 qBittorrent | 2GB | — | Sufficient for heavy downloading |
+| CT-210 Prowlarr | 1GB | — | Lightweight |
+| CT-102 FlareSolverr | 1GB | — | Chrome headless needs RAM |
 
-## Storage Layout
+### VM-901 Windows Gaming
+- **RAM**: 4GB, **CPU**: 4 cores, **cpulimit**: 2
+- **KVM**: Enabled (`kvm: 1`) — was running with `kvm: 0` (TCG software emulation) causing load 28+
+- **onboot**: Disabled — start manually when gaming, stop when done
+- GPU passthrough: RX 580 via VFIO
+
+### Kernel Tuning (`/etc/sysctl.d/99-media-stack.conf`)
+- `vm.swappiness = 10` — prefer RAM over swap
+- `vm.dirty_ratio = 40` / `vm.dirty_background_ratio = 10` — batch HDD writes
+- `vm.vfs_cache_pressure = 50` — keep filesystem caches longer
+- `net.core.somaxconn = 4096` — handle many container connections
+- `net.netfilter.nf_conntrack_max = 262144` — support 27+ containers
+- `fs.inotify.max_user_watches = 524288` — *arr services watch many files
+- TCP keepalive: 300s interval, 30s probe, 5 retries
+
+### HDD I/O Tuning
+- Readahead: 4096 sectors (2MB) for streaming workloads
+- Persistent via `/etc/udev/rules.d/60-media-hdd.rules`
+- BFQ I/O scheduler (default, good for mixed workloads)
+
+### FileBrowser Quantum (v1.2.4-stable)
+- Updated from v1.2.3-stable on 2026-04-10
+- Config: `/usr/local/community-scripts/fq-config.yaml`
+- `cacheDir: /tmp/filebrowser-cache` — fixes 51s slow startup on HDD
+- Database: `/var/lib/filebrowser/database.db`
+- Service hardened with `RestartSec=10`, `TimeoutStartSec=120`, `OOMScoreAdjust=-500`
+- URL: `http://192.168.12.242:32743`
+
+### Storage Layout
 Hard-link friendly — downloads and media on same filesystem (`/mnt/hdd`):
 ```
 /mnt/hdd/torrents/movies  →  /mnt/hdd/media/movies   (hard-link on import)
@@ -32,20 +64,45 @@ Hard-link friendly — downloads and media on same filesystem (`/mnt/hdd`):
 ```
 All containers bind-mount `/mnt/hdd` → `/data` so paths are consistent.
 
-## Transcoding
-- **Plex**: CPU-only transcode (RX 580 passed to VM-901). Ryzen 5 3600 handles 2-3 1080p streams.
-- **Jellyfin**: Same — CPU transcode. Prefer direct play on LAN clients.
-- **Tdarr** (planned CT-236/237): Batch transcode to H.265 to save HDD space. Laptop RTX 4080 can NVENC transcode via Tdarr node.
+### Transcoding
+- **Plex/Jellyfin**: CPU-only (GPU passed to VM-901). Ryzen 5 3600 handles 2-3 1080p streams.
+- **Tdarr** (planned): Laptop RTX 4080 as NVENC transcoding worker.
+
+---
+
+## Bahamut — Raspberry Pi 4B 2GB (192.168.12.244)
+
+### Role
+- AdGuard Home (network-wide DNS + ad-blocking)
+- wg-easy (remote VPN access)
+- Vaultwarden (password manager) + Caddy (TLS)
+- Tailscale mesh VPN
+
+### Memory Optimizations (applied 2026-04-10)
+- **Swap**: Increased from 153MB to 1GB (`/var/swap`)
+- **zram**: 512MB with lz4 compression at priority 100 (persistent via `zram-swap.service`)
+- **GPU memory**: Reduced from 64MB to 16MB (headless, takes effect after reboot)
+- **Docker memory limits**: Set in `/opt/docker-compose.yml` (requires cgroup memory, pending reboot)
+  - AdGuard: 256MB, wg-easy: 128MB, Vaultwarden: 128MB, Caddy: 64MB
+
+### Network Fix
+- **Disabled wlan0**: Both eth0 (192.168.12.244) and wlan0 (192.168.12.245) were on the same subnet causing routing flaps. Wi-Fi disabled via `dtoverlay=disable-wifi` in boot config.
+
+### Kernel Tuning (`/etc/sysctl.d/99-pi-optimize.conf`)
+- `vm.swappiness = 60` — use swap more aggressively (only 2GB RAM)
+- `vm.vfs_cache_pressure = 200` — reclaim caches quickly
+- `vm.min_free_kbytes = 16384` — keep 16MB free to prevent OOM
+- TCP keepalive: 300s interval, 30s probe, 5 retries
+
+### Boot Config Changes (pending reboot)
+- `cgroup_enable=memory cgroup_memory=1` in cmdline.txt (enables Docker memory limits)
+- `gpu_mem=16` (frees ~48MB RAM)
+- `dtoverlay=disable-wifi` (prevents dual-NIC routing issues)
+
+---
 
 ## Network
 - All CTs on bridged `vmbr0` → LAN `192.168.12.x`
 - Static IPs for infrastructure (100-107) and download stack (210-224)
 - DHCP for management CTs (240+) — routed via Traefik (`*.tiamat.local`)
 - VPN kill-switch: qBit/Prowlarr → TinyProxy (CT-101:8888) → WG tunnel (CT-100)
-
-## Now Possible with 32GB
-- Run VM-901 (Windows gaming) alongside full media stack
-- Deploy FlareSolverr Cloudflare indexers (1337x, EZTV, TorrentGalaxy) — Chrome needs ~2GB
-- Deploy Readarr (CT-217), Audiobookshelf (CT-232), Calibre-Web (CT-233)
-- Run Prometheus/Grafana monitoring (CT-260/261)
-- Tdarr transcoding server (CT-236)
