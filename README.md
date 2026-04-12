@@ -1,5 +1,5 @@
 # 🏠 Homelab Media Stack
-Self-hosted media and automation stack on Proxmox (`192.168.12.242`) with per-service LXCs, WireGuard/TinyProxy kill-switch routing, Real-Debrid via Decypharr, and dedicated HDD storage.
+Self-hosted media and automation stack on Proxmox (`192.168.12.242`) with per-service LXCs, WireGuard/TinyProxy kill-switch routing, Real-Debrid via RDT-Client, and dedicated HDD storage.
 
 ## 🏗️ Current Architecture
 ```
@@ -17,10 +17,10 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-210 prowlarr       192.168.12.210  :9696  (primary indexer manager)
 │   ├── CT-211 jackett        192.168.12.211  :9117  (backup/failsafe indexers)
 │   ├── CT-212 qbittorrent    192.168.12.212  :8080  (VPN proxied, backup dl client)
-│   └── CT-213 decypharr      192.168.12.213  :8282  (Real-Debrid, primary dl client)
+│   └── CT-213 rdtclient      192.168.12.213  :6500  (Real-Debrid, primary dl client)
 ├── Media Acquisition (*arr stack)
-│   ├── CT-214 sonarr         192.168.12.214  :8989  (TV → Decypharr)
-│   ├── CT-215 radarr         192.168.12.225  :7878  (Movies → Decypharr)
+│   ├── CT-214 sonarr         192.168.12.214  :8989  (TV → RDT-Client)
+│   ├── CT-215 radarr         192.168.12.225  :7878  (Movies → RDT-Client)
 │   ├── CT-217 readarr        192.168.12.217  :8787  (Books → qBittorrent)
 │   ├── CT-218 lidarr         192.168.12.218  :8686  (Music → qBittorrent)
 │   └── CT-221 mylar3         192.168.12.221  :8090  (Comics → qBittorrent)
@@ -56,12 +56,12 @@ Laptop - 192.168.12.172
 ```
 
 ## 🔀 Download Split
-TV and movies use Real-Debrid via Decypharr (CT-213). Books, music, and comics use qBittorrent (CT-212) over WireGuard VPN.
+TV and movies use Real-Debrid via RDT-Client (CT-213, Bezzad local downloader — no symlinks, no rclone). Books, music, and comics use qBittorrent (CT-212) over WireGuard VPN.
 
 | App | Download Client | Path |
 |-----|----------------|------|
-| Sonarr (TV) | Decypharr :8282 | Real-Debrid |
-| Radarr (Movies) | Decypharr :8282 | Real-Debrid |
+| Sonarr (TV) | RDT-Client :6500 | Real-Debrid → /data/downloads/rdtclient/sonarr/ |
+| Radarr (Movies) | RDT-Client :6500 | Real-Debrid → /data/downloads/rdtclient/radarr/ |
 | Readarr (Books) | qBittorrent :8080 | VPN |
 | Lidarr (Music) | qBittorrent :8080 | VPN |
 | Mylar3 (Comics) | qBittorrent :8080 | VPN |

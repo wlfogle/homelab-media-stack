@@ -19,7 +19,7 @@
 | CT-217 | Readarr | http://192.168.12.217:8787 | API: 19566aa7fb90487ebd2c643ad8c6595d | ✅ running |
 | CT-218 | Lidarr | http://192.168.12.218:8686 | API: 3ff130f5566448e4bc0ce42bdf24c24e | ✅ running |
 | CT-221 | Mylar3 | http://192.168.12.221:8090 | — | ✅ running |
-| CT-213 | Decypharr | http://192.168.12.213:6500 | — | ✅ running |
+| CT-213 | RDT-Client | http://192.168.12.213:6500 | admin / Rdtclient2026! | ✅ running |
 
 ## Media Management
 | CT | Service | URL | User | Pass | Status |
