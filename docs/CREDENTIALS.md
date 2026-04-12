@@ -43,7 +43,7 @@
 | CT-275 | Homarr | http://192.168.12.241:7575 | ✅ running |
 | CT-276 | Homepage | — | ⏹ stopped |
 | CT-103 | Traefik | http://192.168.12.103:8080 | ✅ running |
-| CT-900 | Open WebUI (Ziggy) | http://192.168.12.221:3000 | ✅ running |
+| CT-900 | Open WebUI (Ziggy) | http://192.168.12.250:3000 | ⏹ stopped (onboot: 0) |
 | CT-102 | FlareSolverr | http://192.168.12.102:8191 | ✅ running |
 | CT-280 | RetroArch Web | — | ⏹ stopped |
 | — | Quantum (File Browser) | http://192.168.12.242:32743 | quantum / quantum |
