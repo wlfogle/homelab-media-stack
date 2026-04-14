@@ -142,7 +142,8 @@ services:
       - "${HOMARR_PORT:-7575}:7575"
     environment:
       - TZ=${TZ:-America/Chicago}
-      - AUTH_PROVIDER=credentials
+      - AUTH_PROVIDERS=credentials
+      - SECRET_ENCRYPTION_KEY=${HOMARR_SECRET_KEY}  # generate: openssl rand -hex 32
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${APPDATA_ROOT:-/opt/appdata}/homarr/appdata:/appdata
