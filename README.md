@@ -98,6 +98,16 @@ CT-101 runs `wireguard-tools` + `tinyproxy`.
 - Libraries: `/mnt/hdd/media/*` (tv, movies, music, books, audiobooks, comics)
 - Backups: `/mnt/hdd/backups`
 
+### File Browser (Proxmox host :32654)
+
+File Browser runs on the Proxmox host as a systemd service (`/etc/systemd/system/filebrowser.service`) with root dir `/`. It creates files with restrictive permissions (640/750) that unprivileged LXCs like Jellyfin (CT-231) cannot read. An `after_upload` command hook is configured to fix this automatically:
+
+```
+chmod 644 "$FILE" && chmod 755 "$(dirname "$FILE")"
+```
+
+This setting is stored in File Browser's BoltDB database at `/usr/local/community-scripts/filebrowser.db` and can be managed via the API (`PUT /api/settings`).
+
 ### Ollama (Laptop → CT-900)
 
 - Laptop runs Ollama on RTX 4080 (12GB VRAM), bound to `0.0.0.0:11434`
