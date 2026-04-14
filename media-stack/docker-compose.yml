@@ -134,7 +134,7 @@ services:
 
   # ── Homarr (unified dashboard — works on laptop, Android, Fire TV) ─
   homarr:
-    image: ghcr.io/ajnart/homarr:latest
+    image: ghcr.io/homarr-labs/homarr:latest
     container_name: homarr
     restart: unless-stopped
     networks: [media-net]
@@ -142,11 +142,10 @@ services:
       - "${HOMARR_PORT:-7575}:7575"
     environment:
       - TZ=${TZ:-America/Chicago}
+      - AUTH_PROVIDER=credentials
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${APPDATA_ROOT:-/opt/appdata}/homarr/configs:/app/data/configs
-      - ${APPDATA_ROOT:-/opt/appdata}/homarr/icons:/app/public/icons
-      - ${APPDATA_ROOT:-/opt/appdata}/homarr/data:/data
+      - ${APPDATA_ROOT:-/opt/appdata}/homarr/appdata:/appdata
 
   # ── MediaStack Control (container manager + logs + system stats) ─────────────────
   mediastack-control:

@@ -1,0 +1,1 @@
+look /home/loufogle/Pictures/2026-04-13_17-07.png, it won't update core, or the OS, fix. configure homarr for our media-stack. look across all laptop storage, copy all relevant files to media stack where they go on Tiamat, ignore the XXX folder, insure no duplicates, then compare all, delete everything that you copied to Tiamat from laptop

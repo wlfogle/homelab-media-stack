@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=MediaStack Control
+Comment=Master control panel for media stack Docker containers
+Exec=xdg-open http://localhost:9900
+Icon=utilities-system-monitor
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+Keywords=docker;media;containers;dashboard;
+StartupNotify=true

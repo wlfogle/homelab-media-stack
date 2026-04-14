@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=MediaStack Control (Native)
+Comment=Native desktop app for managing Docker media stack services
+Exec=/home/loufogle/mediastack-control-popos/launch.sh
+Icon=utilities-system-monitor
+Type=Application
+Terminal=false
+Categories=Utility;System;
+Keywords=docker;media;sonarr;radarr;plex;
+StartupNotify=true

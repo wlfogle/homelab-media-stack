@@ -109,9 +109,6 @@ CT-101 runs `wireguard-tools` + `tinyproxy`.
 - `android-app/` — TiamatsStack WebView app (mobile + Fire TV flavors)
 - `clients/firetv.md` — Fire TV setup guide
 - `clients/tablet.md` — Android phone/tablet setup guide
-- `clients/laptop.md` — Laptop admin setup guide
-- `clients/mediastack-control-popos/` — Native Tkinter desktop app for Pop!_OS
-- `clients/desktop-launchers/` — `.desktop` launchers (MediaStack Control, Tiamat VNC)
 
 ## ⚠️ Known Issues
 
@@ -127,8 +124,6 @@ CT-101 runs `wireguard-tools` + `tinyproxy`.
 - `docs/NFS.md` — Laptop NFS shares
 - `docs/HARDWARE.md` — Server, Pi, laptop specs
 - `docs/PROXMOX-INSTALL.md`
-- `docs/PROXMOX-WIFI.md` — Connecting Proxmox to Wi-Fi
-- `docs/HOMARR.md` — Homarr v1 dashboard board setup & integrations
 - `docs/INDEXERS.md`
 - `docs/BACKUPS.md`
 - `docs/REAL-DEBRID.md`

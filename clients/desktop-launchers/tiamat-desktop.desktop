@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Tiamat Desktop
+Comment=LXDE desktop on Tiamat Proxmox server (192.168.12.242:5901)
+Exec=/usr/bin/xtigervncviewer 192.168.12.242:5901
+Icon=preferences-desktop-remote-desktop
+Terminal=false
+Categories=Network;RemoteAccess;
+Keywords=vnc;tiamat;remote;proxmox;lxde;
