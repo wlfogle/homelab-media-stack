@@ -4,11 +4,14 @@
 ```
 Router (192.168.12.1)
 ├── Tiamat (Proxmox VE)       → 192.168.12.242 (static)
-├── Ziggy (Raspberry Pi 3B+)  → 192.168.12.20 (static)
-├── Laptop                    → DHCP
+├── Bahamut (Raspberry Pi 4)  → 192.168.12.244 (static, DietPi edge node)
+├── Laptop                    → 192.168.12.172 (DHCP reservation)
 ├── Fire TV                   → DHCP
 └── Tablet / phones           → DHCP
 ```
+
+> "Ziggy" is now CT-900 on Tiamat (Open WebUI + SearXNG). The name no
+> longer refers to a Raspberry Pi.
 
 ## Proxmox Bridge
 Proxmox host networking is bridged through `vmbr0` so all CTs/VMs get LAN access.
@@ -134,14 +137,17 @@ then update `infrastructure/traefik/dynamic/media-management.yml` if IPs change.
 To add a new route, drop a YAML file in `/etc/traefik/dynamic/` on CT-103.
 Traefik hot-reloads it immediately (no restart needed).
 
-## DNS / Remote Access on Ziggy
+## DNS / Remote Access on Bahamut
 
-Ziggy (`192.168.12.20`) runs:
-- AdGuard Home (primary DNS): `:53`, setup UI `:3000`
-- wg-easy (remote VPN mgmt): `http://192.168.12.20:51821`
+Bahamut (`192.168.12.244`, Raspberry Pi 4, DietPi) runs:
+- AdGuard Home (primary DNS): `:53`, setup UI `:8081`
+- wg-easy (remote VPN mgmt): `http://192.168.12.244:51821`
 - WireGuard tunnel endpoint: `:51820/udp`
-- Vaultwarden behind Caddy: `https://192.168.12.20`
+- Vaultwarden behind Caddy: `https://192.168.12.244` (TLS via DuckDNS)
+- DietPi Dashboard: `:5252`
+- TigerVNC: `:5901`
+- Tailscale (mesh VPN)
 
 Router DNS recommendation:
-1. `192.168.12.20`
+1. `192.168.12.244`
 2. `1.1.1.1`

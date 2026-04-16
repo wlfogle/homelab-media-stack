@@ -48,18 +48,24 @@ RX 580 (XFX) is **fully configured for VFIO passthrough** — no setup needed:
 | sda (ST2000DM008 HDD) | 1.8TB | Proxmox LVM: root (96GB), media-hdd (1.5TB), all CT/VM disks |
 | sdb (WDC WDS240G2G0A SSD) | 223GB | Passed through to VM-901 (Windows games storage); contains existing Windows install on sdb4 |
 
-## Ziggy (Raspberry Pi 3B+)
+## Bahamut (Raspberry Pi 4, DietPi)
+
+> Bahamut is the current edge DNS/VPN/password-manager node. The name
+> "Ziggy" is no longer attached to hardware — Ziggy now refers to CT-900
+> (Open WebUI + SearXNG) running as an LXC on Tiamat.
 
 | Component | Spec |
 |-----------|------|
-| **CPU** | ARM Cortex-A53, 4-core 1.4GHz (64-bit) |
-| **RAM** | 1GB LPDDR2 |
-| **Storage** | microSD (class 10 / A1 recommended, 16GB+) |
-| **Networking** | 10/100 Ethernet + 802.11AC Wi-Fi (use wired) |
-| **OS** | Raspberry Pi OS Lite 64-bit (Bookworm) |
-| **Services** | AdGuard Home (replica), wg-easy (remote VPN), Vaultwarden |
+| **CPU** | Broadcom BCM2711, quad-core Cortex-A72 @ 1.5 GHz (64-bit) |
+| **RAM** | 4 GB LPDDR4 |
+| **Storage** | microSD + optional USB SSD for swap (recommended) |
+| **Networking** | Gigabit Ethernet + 802.11AC Wi-Fi (use wired) |
+| **OS** | DietPi (Debian Bookworm base) |
+| **IP** | 192.168.12.244 (static) |
+| **Services** | AdGuard Home (primary DNS), Caddy + DuckDNS (reverse proxy + TLS), WG-Easy (WireGuard mgmt), Vaultwarden (Docker), DietPi Dashboard, TigerVNC, Tailscale |
 
-> Vaultwarden requires HTTPS. Use Caddy as a reverse proxy on the Pi for automatic TLS.
+> Vaultwarden is fronted by Caddy for automatic TLS. AdGuard is the LAN's
+> primary resolver; fallback is `1.1.1.1`.
 
 ## Laptop — Primary Admin / Dev Machine
 
