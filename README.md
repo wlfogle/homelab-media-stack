@@ -19,7 +19,8 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-210 prowlarr       192.168.12.210  :9696  (primary indexer manager)
 │   ├── CT-211 jackett        192.168.12.211  :9117  (backup/failsafe indexers)
 │   ├── CT-212 qbittorrent    192.168.12.212  :8080  (VPN proxied, backup dl client)
-│   └── CT-213 rdtclient      192.168.12.213  :6500  (Real-Debrid, primary dl client)
+│   ├── CT-213 rdtclient      192.168.12.213  :6500  (Real-Debrid, primary dl client)
+│   └── CT-216 decluttarr     192.168.12.216  (no UI)  *arr queue janitor
 ├── Media Acquisition (*arr stack)
 │   ├── CT-214 sonarr         192.168.12.214  :8989  (TV → RDT-Client)
 │   ├── CT-215 radarr         192.168.12.225  :7878  (Movies → RDT-Client)
@@ -27,16 +28,22 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-218 lidarr         192.168.12.218  :8686  (Music → qBittorrent)
 │   └── CT-221 mylar3         192.168.12.221  :8090  (Comics → qBittorrent)
 ├── Media Servers
-│   ├── CT-230 plex           192.168.12.230  :32400
+│   ├── CT-230 plex           192.168.12.230  :32400 (stopped, Jellyfin is primary)
 │   └── CT-231 jellyfin       192.168.12.231  :8096  (primary)
 ├── Media Hosting
 │   ├── CT-232 audiobookshelf 192.168.12.232  :13378 (audiobooks)
 │   └── CT-233 calibre-web    192.168.12.233  :8083  (ebooks)
+├── Live TV / IPTV
+│   ├── CT-234 threadfin      192.168.12.234  :34400 (M3U/XMLTV proxy → Jellyfin)
+│   └── CT-235 dispatcharr    192.168.12.235  :9191  (IPTV stream + EPG manager)
 ├── Request & Management
 │   ├── CT-240 bazarr         DHCP            :6767  (subtitles)
 │   └── CT-242 seerr          DHCP            :5055  (TV/movie requests)
-├── Monitoring (stopped)
-│   ├── CT-277 recyclarr      —               not installed, CT shell only
+├── Quality + Stats
+│   ├── CT-245 recyclarr      192.168.12.245  (cron)   TRaSH-guide sync to Sonarr/Radarr
+│   └── CT-247 jellystat      192.168.12.247  :3000    Jellyfin usage/playback stats
+├── Monitoring
+│   ├── CT-248 uptime-kuma    192.168.12.248  :3001  (replaces scripts/stack-watchdog.sh)
 │   └── CT-278 crowdsec       —               stopped, deferred
 ├── Networking
 │   └── CT-279 tailscale      192.168.12.220  Tailscale mesh VPN
@@ -126,8 +133,8 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 ## ⚠️ Known Issues
 
 - Seerr 3.1.0 Jellyfin sync returns 400 ("Guid can't be empty" on /Items/Latest) — cosmetic, does not block requests. Fix expected in Seerr v3.2.0.
-- CT-277 Recyclarr is an empty CT shell — not installed.
 - CT-278 CrowdSec stopped and deferred.
+- Legacy stopped CTs (CT-244 tautulli, CT-245 kometa, CT-277 recyclarr shell) were retired in Phase 7 — kometa/tautulli are Plex-only and we run Jellyfin; recyclarr now lives at CT-245 installed natively. Run `PHASE7_DESTROY_STALE=1 bash scripts/deploy-phase7.sh` on a fresh host to reproduce the cleanup.
 
 ## 📚 Docs
 
@@ -143,3 +150,4 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 - `docs/BACKUPS.md`
 - `docs/REAL-DEBRID.md`
 - `docs/TIAMAT-AGENT-FIXES.md` — Fix runbooks for Readarr, Lidarr, Audiobookshelf, Calibre-Web, FlareSolverr
+- `docs/TIAMAT-PHASE7.md` — Phase 7 deployment runbook (recyclarr, jellystat, decluttarr, uptime-kuma, threadfin, dispatcharr)
