@@ -1,0 +1,22 @@
+http:
+  routers:
+    homeassistant:
+      rule: "Host(`ha.tiamat.local`) || Host(`homeassistant.tiamat.local`)"
+      entryPoints: [web]
+      service: homeassistant
+    habridge:
+      rule: "Host(`habridge.tiamat.local`)"
+      entryPoints: [web]
+      service: habridge
+
+  services:
+    homeassistant:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.250:8123"
+    # HABridge CT-501 — local Alexa/Hue emulation bridge
+    # Web UI on :80, Hue emulation API on :8080 (Alexa uses UPnP/SSDP for discovery)
+    habridge:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.251:80"

@@ -1,0 +1,113 @@
+# ============================================================
+# REST Commands
+# FIX #3: all use method: GET (HEAD is not supported)
+# ============================================================
+
+# ── Health checks ─────────────────────────────────────────────
+check_jellyfin:
+  url: "http://192.168.12.231:8096/System/Info/Public"
+  method: GET
+  timeout: 10
+
+check_plex:
+  url: "http://192.168.12.230:32400/identity"
+  method: GET
+  timeout: 10
+
+check_ollama:
+  url: "http://192.168.12.172:11434/api/version"
+  method: GET
+  timeout: 10
+
+check_traefik:
+  url: "http://192.168.12.103:8080/api/overview"
+  method: GET
+  timeout: 10
+
+check_sonarr:
+  url: "http://192.168.12.214:8989/api/v3/system/status"
+  method: GET
+  headers:
+    X-Api-Key: !secret sonarr_api_key
+  timeout: 10
+
+check_radarr:
+  url: "http://192.168.12.225:7878/api/v3/system/status"
+  method: GET
+  headers:
+    X-Api-Key: !secret radarr_api_key
+  timeout: 10
+
+check_prowlarr:
+  url: "http://192.168.12.210:9696/api/v1/system/status"
+  method: GET
+  headers:
+    X-Api-Key: !secret prowlarr_api_key
+  timeout: 10
+
+check_rdtclient:
+  url: "http://192.168.12.213:6500/api/v2/torrents"
+  method: GET
+  timeout: 10
+
+check_uptime_kuma:
+  url: "http://192.168.12.248:3001"
+  method: GET
+  timeout: 10
+
+check_internet:
+  url: "https://1.1.1.1"
+  method: GET
+  timeout: 5
+
+# ── Sonarr ────────────────────────────────────────────────────
+sonarr_series_search_all:
+  url: "http://192.168.12.214:8989/api/v3/command"
+  method: POST
+  headers:
+    X-Api-Key: !secret sonarr_api_key
+    Content-Type: application/json
+  payload: '{"name":"missingEpisodeSearch"}'
+  timeout: 30
+
+sonarr_refresh_all:
+  url: "http://192.168.12.214:8989/api/v3/command"
+  method: POST
+  headers:
+    X-Api-Key: !secret sonarr_api_key
+    Content-Type: application/json
+  payload: '{"name":"refreshSeries"}'
+  timeout: 30
+
+# ── Radarr ────────────────────────────────────────────────────
+radarr_movie_search:
+  url: "http://192.168.12.225:7878/api/v3/command"
+  method: POST
+  headers:
+    X-Api-Key: !secret radarr_api_key
+    Content-Type: application/json
+  payload: '{"name":"missingMoviesSearch"}'
+  timeout: 30
+
+radarr_refresh_all:
+  url: "http://192.168.12.225:7878/api/v3/command"
+  method: POST
+  headers:
+    X-Api-Key: !secret radarr_api_key
+    Content-Type: application/json
+  payload: '{"name":"refreshMovie"}'
+  timeout: 30
+
+# ── Jellyfin ─────────────────────────────────────────────────
+jellyfin_library_scan:
+  url: "http://192.168.12.231:8096/Library/Refresh"
+  method: POST
+  headers:
+    X-Emby-Authorization: !secret jellyfin_auth_header
+  timeout: 30
+
+# ── Ollama ───────────────────────────────────────────────────
+ollama_list_models:
+  url: "http://192.168.12.172:11434/api/tags"
+  method: GET
+  timeout: 10

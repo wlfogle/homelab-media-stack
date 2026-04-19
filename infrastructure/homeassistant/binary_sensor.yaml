@@ -1,0 +1,153 @@
+# ============================================================
+# Binary Sensors — Service Health Monitoring
+# FIX #1: uses valid device_class values (connectivity / problem)
+# ============================================================
+
+# ── Media Servers ─────────────────────────────────────────────
+- platform: ping
+  name: "Jellyfin"
+  host: 192.168.12.231
+  count: 2
+  scan_interval: 30
+  device_class: connectivity
+
+- platform: ping
+  name: "Plex"
+  host: 192.168.12.230
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+# ── Infrastructure ────────────────────────────────────────────
+- platform: ping
+  name: "Traefik"
+  host: 192.168.12.103
+  count: 2
+  scan_interval: 30
+  device_class: connectivity
+
+- platform: ping
+  name: "Vaultwarden"
+  host: 192.168.12.104
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "Authentik"
+  host: 192.168.12.107
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+# ── AI Services ───────────────────────────────────────────────
+- platform: ping
+  name: "Ollama"
+  host: 192.168.12.172
+  count: 2
+  scan_interval: 30
+  device_class: connectivity
+
+# ── Download Stack ────────────────────────────────────────────
+- platform: ping
+  name: "Sonarr"
+  host: 192.168.12.214
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "Radarr"
+  host: 192.168.12.225
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "Prowlarr"
+  host: 192.168.12.210
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "RDT Client"
+  host: 192.168.12.213
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "qBittorrent"
+  host: 192.168.12.212
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+# ── Media Management ──────────────────────────────────────────
+- platform: ping
+  name: "Jellyseerr"
+  host: 192.168.12.151
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "Jellystat"
+  host: 192.168.12.247
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+- platform: ping
+  name: "Uptime Kuma"
+  host: 192.168.12.248
+  count: 2
+  scan_interval: 30
+  device_class: connectivity
+
+# ── Live TV ───────────────────────────────────────────────────
+- platform: ping
+  name: "Threadfin"
+  host: 192.168.12.234
+  count: 2
+  scan_interval: 120
+  device_class: connectivity
+
+- platform: ping
+  name: "Dispatcharr"
+  host: 192.168.12.235
+  count: 2
+  scan_interval: 120
+  device_class: connectivity
+
+# ── Books / Audio ─────────────────────────────────────────────
+- platform: ping
+  name: "Audiobookshelf"
+  host: 192.168.12.232
+  count: 2
+  scan_interval: 120
+  device_class: connectivity
+
+- platform: ping
+  name: "Calibre Web"
+  host: 192.168.12.233
+  count: 2
+  scan_interval: 120
+  device_class: connectivity
+
+# ── Bahamut (Pi) ──────────────────────────────────────────────
+- platform: ping
+  name: "Bahamut"
+  host: 192.168.12.244
+  count: 2
+  scan_interval: 60
+  device_class: connectivity
+
+# ── Proxmox host ──────────────────────────────────────────────
+- platform: ping
+  name: "Tiamat Proxmox"
+  host: 192.168.12.242
+  count: 2
+  scan_interval: 30
+  device_class: connectivity

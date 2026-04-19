@@ -1,0 +1,93 @@
+# ============================================================
+# Sensors
+# FIX #2: systemmonitor replaced with command_line sensors
+# FIX #3: REST sensors use GET not HEAD
+# ============================================================
+
+# ── System monitoring (command_line) ──────────────────────────
+- platform: command_line
+  name: "HA CPU Usage"
+  command: "cat /proc/loadavg | awk '{print $1}'"
+  unit_of_measurement: "load"
+  scan_interval: 30
+
+- platform: command_line
+  name: "HA Memory Used"
+  command: "free -m | awk '/Mem:/ {printf \"%.0f\", $3/$2*100}'"
+  unit_of_measurement: "%"
+  scan_interval: 60
+
+- platform: command_line
+  name: "HA Disk Used"
+  command: "df /config | awk 'NR==2 {print $5}' | tr -d '%'"
+  unit_of_measurement: "%"
+  scan_interval: 300
+
+# ── Jellyfin active streams ───────────────────────────────────
+- platform: rest
+  name: "Jellyfin Active Streams"
+  resource: "http://192.168.12.231:8096/Sessions"
+  headers:
+    X-Emby-Authorization: "MediaBrowser Token={{ states('input_text.jellyfin_api_key') }}"
+  value_template: >
+    {% if value_json is iterable %}
+      {{ value_json | selectattr('NowPlayingItem', 'defined') | list | count }}
+    {% else %}
+      0
+    {% endif %}
+  unit_of_measurement: "streams"
+  scan_interval: 30
+
+# ── Ollama status ─────────────────────────────────────────────
+- platform: rest
+  name: "Ollama Status"
+  resource: "http://192.168.12.172:11434/api/version"
+  method: GET
+  value_template: >
+    {% if value_json.version is defined %}
+      Online v{{ value_json.version }}
+    {% else %}
+      Offline
+    {% endif %}
+  scan_interval: 60
+
+# ── Sonarr queue ──────────────────────────────────────────────
+- platform: rest
+  name: "Sonarr Queue"
+  resource: "http://192.168.12.214:8989/api/v3/queue?apikey={{ states('input_text.sonarr_api_key') }}"
+  method: GET
+  value_template: >
+    {% if value_json.totalRecords is defined %}
+      {{ value_json.totalRecords }}
+    {% else %}
+      0
+    {% endif %}
+  unit_of_measurement: "items"
+  scan_interval: 60
+
+# ── Radarr queue ──────────────────────────────────────────────
+- platform: rest
+  name: "Radarr Queue"
+  resource: "http://192.168.12.225:7878/api/v3/queue?apikey={{ states('input_text.radarr_api_key') }}"
+  method: GET
+  value_template: >
+    {% if value_json.totalRecords is defined %}
+      {{ value_json.totalRecords }}
+    {% else %}
+      0
+    {% endif %}
+  unit_of_measurement: "items"
+  scan_interval: 60
+
+# ── Traefik routes ────────────────────────────────────────────
+- platform: rest
+  name: "Traefik Routes"
+  resource: "http://192.168.12.103:8080/api/overview"
+  method: GET
+  value_template: >
+    {% if value_json.http is defined %}
+      {{ value_json.http.routers.total | default(0) }} routes
+    {% else %}
+      Offline
+    {% endif %}
+  scan_interval: 300

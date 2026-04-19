@@ -47,8 +47,11 @@ Tiamat (Proxmox) - 192.168.12.242
 │   └── CT-278 crowdsec       —               stopped, deferred
 ├── Networking
 │   └── CT-279 tailscale      192.168.12.220  Tailscale mesh VPN
-└── AI
-    └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
+├── AI
+│   └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
+├── Smart Home & Voice Control
+│   ├── VM-500 home-assistant 192.168.12.250  HAOS :8123  (Phase 10)
+│   └── CT-501 habridge        192.168.12.251  HABridge :8080 (Alexa/Hue emulation)
 
 Bahamut (DietPi) - 192.168.12.244
 ├── AdGuard Home       :53, :8081  (DNS filtering, Docker)
@@ -91,6 +94,8 @@ All *arr apps with Jellyfin support have MediaBrowser notifications configured t
 
 All services reachable via `*.tiamat.local` — see `docs/NETWORKING.md` for full table.
 Traefik dashboard: `http://traefik.tiamat.local` (or `http://192.168.12.103:8080`)
+Home Assistant: `http://ha.tiamat.local` (or `http://192.168.12.250:8123`)
+HABridge UI: `http://habridge.tiamat.local` (or `http://192.168.12.251:8080`)
 
 ## 🔐 Download VPN Path
 
@@ -151,3 +156,6 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 - `docs/REAL-DEBRID.md`
 - `docs/TIAMAT-AGENT-FIXES.md` — Fix runbooks for Readarr, Lidarr, Audiobookshelf, Calibre-Web, FlareSolverr
 - `docs/TIAMAT-PHASE7.md` — Phase 7 deployment runbook (recyclarr, jellystat, decluttarr, uptime-kuma, threadfin, dispatcharr)
+- `docs/HOME-ASSISTANT.md` — VM-500 HAOS config, known issues, deploy instructions
+- `docs/VOICE-CONTROL.md` — Star Trek computer voice control (Alexa + HABridge + Ollama AI)
+- `infrastructure/homeassistant/` — HA config source files (deploy with `deploy.sh`)

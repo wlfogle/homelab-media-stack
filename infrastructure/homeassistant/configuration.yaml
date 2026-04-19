@@ -1,0 +1,86 @@
+# ============================================================
+# Home Assistant — VM-500 @ 192.168.12.250:8123 (HAOS)
+# Star Trek Computer Voice Control Hub
+#
+# Deploy: run infrastructure/homeassistant/deploy.sh
+# Docs:   docs/HOME-ASSISTANT.md
+#         docs/VOICE-CONTROL.md
+# ============================================================
+
+homeassistant:
+  name: Tiamat
+  unit_system: imperial
+  currency: USD
+  country: US
+  time_zone: America/Chicago
+
+# ── HTTP — Supervisor + Traefik compatible ────────────────────
+# FIX #8: removed deprecated server_host; trusted_proxies for Traefik
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 192.168.12.103   # CT-103 Traefik
+    - 127.0.0.1
+
+# ── Core integrations ─────────────────────────────────────────
+api:
+hassio:
+default_config:
+
+# ── Alexa Smart Home (local, via HABridge CT-501) ────────────
+# HABridge emulates Hue bridge; Alexa discovers devices locally.
+# No Nabu Casa subscription required.
+# See docs/VOICE-CONTROL.md for HABridge setup.
+alexa:
+  smart_home:
+    locale: en-US
+    filter:
+      include_domains:
+        - script
+        - switch
+        - input_boolean
+      include_entities:
+        - script.movie_night
+        - script.system_status
+        - script.ai_status
+        - script.download_status
+        - script.pause_all_media
+        - script.morning_routine
+        - script.evening_routine
+        - script.media_scan
+        - script.computer_report
+
+# ── Ollama — local AI conversation agent ──────────────────────
+# Configure via UI: Settings → Voice Assistants → Add Assistant
+# Set conversation agent to "Ollama (Local AI)"
+# Ollama endpoint: http://192.168.12.172:11434
+# Recommended model: llama3.1:8b or mistral:7b
+
+# ── Split config files ────────────────────────────────────────
+binary_sensor: !include binary_sensor.yaml
+sensor:        !include sensors.yaml
+rest_command:  !include rest_commands.yaml
+script:        !include scripts.yaml
+automation:    !include automations.yaml
+intent_script: !include intent_script.yaml
+
+# ── Prometheus metrics (for Grafana / Uptime-Kuma) ───────────
+prometheus:
+  namespace: homeassistant
+
+# ── Recorder — SQLite optimisation (FIX #6) ──────────────────
+recorder:
+  purge_keep_days: 30
+  commit_interval: 10
+  exclude:
+    domains:
+      - automation
+      - updater
+
+# ── Logger ───────────────────────────────────────────────────
+logger:
+  default: warning
+  logs:
+    homeassistant.components.alexa: info
+    homeassistant.components.rest:  warning
+    homeassistant.components.conversation: info
