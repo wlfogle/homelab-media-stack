@@ -255,17 +255,94 @@ Full channel list: `curl -s http://localhost:9981/api/mpegts/service/grid | pyth
 
 ## DVR / Recording
 
-TVHeadend supports full DVR. Configure via:
-- Web UI → Configuration → DVR → Digital Video Recorder
-- Set recording path (NAS mount or local)
-- Schedule recordings via EPG
+### How scheduling works
 
-Jellyfin can also schedule recordings via the Live TV interface if
-TVHeadend HTSP is used (currently using HDHomeRun native — DVR via
-Jellyfin requires TVHeadend HTSP connection).
+Sonarr and Radarr are **library managers**, not DVR schedulers.
+The correct pipeline is:
 
-To enable full DVR in Jellyfin, configure the Tiamat CT-236 TVHeadend
-HTSP as the tuner instead of direct HDHomeRun.
+```
+1. TVHeadend schedules + records OTA via EPG autorec rules
+2. Post-process script copies recording to NFS-shared inbox
+3. Sonarr/Radarr scan the inbox, rename, and add to library
+```
+
+### TVHeadend Autorecs (how to schedule recordings)
+
+Open http://192.168.12.172:9981 → **Configuration → DVR → Autorecs → Add**
+
+| Field | Example |
+|---|---|
+| Title (regex) | `.*Jeopardy.*` |
+| Channel | WAVE (3.1) or Any |
+| Day(s) | Mon–Fri or Any |
+| Time range | 19:00 – 20:00 or Any |
+| DVR profile | Default |
+
+Save → TVH records every matching show automatically.
+
+### DVR Config (already configured via API)
+
+| Setting | Value |
+|---|---|
+| Recording path | `/var/snap/tvheadend/common/recordings` |
+| Retention | 7 days (auto-removed after import) |
+| Post-processor | `tvh-to-arr.sh` (calls Sonarr/Radarr after each recording) |
+
+### Post-process → Sonarr/Radarr Pipeline
+
+Script: `/var/snap/tvheadend/common/scripts/tvh-to-arr.sh`
+
+After each successful recording:
+1. Copies `.ts` file to `tv-inbox/` or `movies-inbox/`
+2. Calls `Sonarr /api/v3/command DownloadedEpisodesScan` on the inbox path
+3. Sonarr matches the episode, renames it, adds to `/data/media/tv/`
+
+Logs: `/var/snap/tvheadend/common/scripts/tvh-to-arr.log`
+
+### One-time setup: Mount NFS inbox on CT-214 (Sonarr)
+
+The laptop NFS-exports the recording inbox. Run these **once on Proxmox** to wire it up:
+
+```bash
+# On Proxmox host (192.168.12.242) — adds persistent NFS mount into CT-214
+pct exec 214 -- bash -c "
+  apt-get install -y nfs-common 2>/dev/null
+  mkdir -p /data/media/tv-ota-inbox
+  echo '192.168.12.172:/var/snap/tvheadend/common/recordings/tv-inbox  /data/media/tv-ota-inbox  nfs  defaults,_netdev  0  0' >> /etc/fstab
+  mount -a
+  echo 'NFS mounted:' \$(df -h /data/media/tv-ota-inbox | tail -1)
+"
+
+# Also add OTA inbox as Sonarr root folder (once path exists)
+curl -s -X POST 'http://192.168.12.214:8989/api/v3/rootfolder' \
+  -H 'X-Api-Key: 9e2127824e7446f6a2ddc5da67cfe693' \
+  -H 'Content-Type: application/json' \
+  -d '{"path":"/data/media/tv-ota-inbox"}'
+```
+
+### Test a recording
+
+```bash
+# Schedule a one-off recording via TVH API
+SVC_UUID=$(curl -s 'http://localhost:9981/api/mpegts/service/grid' | \
+  python3 -c "import sys,json; svcs=json.load(sys.stdin)['entries']; \
+  print(next(s['uuid'] for s in svcs if 'WAVE' in s.get('svcname','')))")  # WAVE = NBC
+
+# Record immediately for 5 minutes (300 seconds)
+NOW=$(date +%s)
+curl -s -X POST 'http://localhost:9981/api/dvr/entry/create' \
+  -d "conf={\"channel\":\"$(curl -s 'http://localhost:9981/api/channel/grid' | \
+    python3 -c 'import sys,json; chs=json.load(sys.stdin)[\"entries\"]; print(next(c[\"uuid\"] for c in chs if \"WAVE\" in c[\"name\"]))')\",\
+  \"start\":$NOW,\"stop\":$((NOW+300)),\"title\":{\"eng\":\"OTA Test Recording\"}}"
+```
+
+### Sonarr: Add a TV show for OTA monitoring
+
+In Sonarr (http://192.168.12.214:8989):
+1. **Series → Add New** → search for a show airing OTA (e.g. "Jeopardy")
+2. **Root folder**: `/data/media/tv` or `/data/media/tv-ota-inbox`
+3. **Monitor**: All episodes
+4. Save — Sonarr will pick up recordings from TVH automatically
 
 ---
 
