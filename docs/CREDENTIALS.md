@@ -8,6 +8,17 @@
 | CT-231 | Jellyfin | http://192.168.12.231:8096 | jellyfin | jellyfin | ✅ running |
 | CT-230 | Plex | http://192.168.12.230:32400/web | loufogle (Plex account) | — | ⏹ stopped |
 
+## Live TV / OTA
+| CT | Service | URL | Notes | Status |
+|---|---|---|---|---|
+| — | HDHomeRun CONNECT | http://192.168.12.215 | Device ID: 1048EEE4, 46 OTA channels | ✅ active |
+| — | HDHomeRun M3U | http://192.168.12.215:5004/lineup.m3u | Direct from device | ✅ active |
+| Laptop | TVHeadend (snap) | http://192.168.12.172:9981 | Web UI — no login on LAN | ✅ running |
+| Laptop | TVHeadend HTSP | 192.168.12.172:9982 | For Jellyfin/TVHPlayer | ✅ running |
+| Laptop | TVH M3U (served) | http://192.168.12.172:8765/hdhomerun.m3u | systemd HTTP server | ✅ running |
+| CT-236 | TVHeadend (Tiamat) | http://192.168.12.236:9981 | Run scripts/deploy-tvheadend.sh to deploy | ⏹ not deployed |
+| CT-236 | TVHeadend HTSP | 192.168.12.236:9982 | For Jellyfin/TVHPlayer | ⏹ not deployed |
+
 ## Download Stack
 | CT | Service | URL | User/API Key | Status |
 |---|---|---|---|---|
@@ -92,3 +103,4 @@
 | Plex Token | mixMERF9aEJxg9HrDzZW |
 | TMDb | 47ef060c8451984321a70c2a07c63bce |
 | Real Debrid | S637QWEA454DIRAVGD5MKVAU7CH62FMASOSSXQNY5ERTJCFKINKQ |
+| Jellyfin (Oz-Agent) | 849ce95e446c4fbaa6b948c4d548b0eb |
