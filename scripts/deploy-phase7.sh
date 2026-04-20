@@ -2,7 +2,7 @@
 # ============================================================
 # Phase 7 — Orchestrator
 # Deploys: Recyclarr, Jellystat, Decluttarr, Uptime Kuma,
-#          Threadfin, Dispatcharr
+#          Threadfin, Dispatcharr, TVHeadend
 #
 # Run on Proxmox host (Tiamat) as root:
 #   bash /opt/homelab-media-stack/scripts/deploy-phase7.sh
@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/phase7-common.sh"
 
-ALL=(recyclarr jellystat decluttarr uptimekuma threadfin dispatcharr)
+ALL=(recyclarr jellystat decluttarr uptimekuma threadfin dispatcharr tvheadend)
 PICK=()
 
 if [ -n "${ONLY:-}" ]; then
@@ -77,7 +77,8 @@ printf '  %-14s %s\n' \
   "jellystat"   "http://192.168.12.247:3000" \
   "uptime-kuma" "http://192.168.12.248:3001" \
   "threadfin"   "http://192.168.12.234:34400/web" \
-  "dispatcharr" "http://192.168.12.235:9191"
+  "dispatcharr" "http://192.168.12.235:9191" \
+  "tvheadend"   "http://192.168.12.236:9981  (HTSP :9982)"
 echo
 echo "Via Traefik (after copying infrastructure/traefik/dynamic/phase7.yml to CT-103):"
 printf '  http://%s.tiamat.local\n' jellystat uptime threadfin dispatcharr

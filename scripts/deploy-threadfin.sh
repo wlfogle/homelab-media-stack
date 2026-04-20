@@ -26,11 +26,11 @@ p7_require_pve
 p7_ct_create "$CTID" "$HOSTNAME" "$IP" 1 1024 4
 p7_ct_start_and_wait "$CTID"
 
-p7_info "Installing ffmpeg + vlc + deps ..."
+p7_info "Installing ffmpeg + deps (vlc skipped - threadfin only needs ffmpeg) ..."
 p7_ct_run "$CTID" <<'BASH'
 apt-get update -qq
 apt-get install -y --no-install-recommends -qq \
-  curl ca-certificates ffmpeg vlc-bin vlc-plugin-base tzdata
+  curl ca-certificates ffmpeg tzdata
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 echo America/New_York > /etc/timezone
 BASH

@@ -14,69 +14,44 @@
 #
 # Run from Proxmox host (192.168.12.242):
 #   bash scripts/deploy-tvheadend.sh
+#
+# Env:
+#   FORCE_RECREATE=1   destroy CT-236 and rebuild
 # ============================================================
-set -euo pipefail
+set -Eeuo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/phase7-common.sh"
 
 CT_ID=236
 CT_IP="192.168.12.236"
-CT_GW="192.168.12.1"
 CT_HOSTNAME="tvheadend"
-CT_MEMORY=1024
-CT_CORES=2
-CT_DISK=8
-STORAGE="local-lvm"
-TEMPLATE="local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
 
 # HDHomeRun tuner on LAN
 HDHOMERUN_IP="192.168.12.215"
 HDHOMERUN_M3U="http://${HDHOMERUN_IP}:5004/lineup.m3u"
 
-log() { echo "[$(date '+%H:%M:%S')] $*"; }
-die() { echo "ERROR: $*" >&2; exit 1; }
+p7_step "TVHeadend → CT-${CT_ID} @ ${CT_IP}:9981"
+p7_require_pve
+[ "${FORCE_RECREATE:-0}" = "1" ] && p7_ct_destroy_if_exists "$CT_ID"
 
-# ── Skip create if CT already exists ─────────────────────────
-if pct status $CT_ID &>/dev/null; then
-  log "CT-$CT_ID already exists — skipping create, updating config only"
-  pct start $CT_ID 2>/dev/null || true
-  sleep 3
-else
-  # ── Verify / download template ──────────────────────────────
-  if ! pveam list local | grep -q "debian-12-standard_12.7"; then
-    log "Downloading Debian 12 template..."
-    pveam download local debian-12-standard_12.7-1_amd64.tar.zst
-  fi
-
-  log "Creating CT-$CT_ID ($CT_HOSTNAME @ $CT_IP)..."
-  pct create $CT_ID "$TEMPLATE" \
-    --hostname "$CT_HOSTNAME" \
-    --memory $CT_MEMORY \
-    --cores $CT_CORES \
-    --net0 name=eth0,bridge=vmbr0,ip="${CT_IP}/24",gw="$CT_GW" \
-    --storage "$STORAGE" \
-    --rootfs "${STORAGE}:${CT_DISK}" \
-    --unprivileged 0 \
-    --features nesting=1 \
-    --startup order=4,up=30 \
-    --onboot 1
-
-  # Allow raw socket access needed for HDHomeRun multicast discovery
+# ── Create CT ──────────────────────────────────────────────────
+p7_ct_create "$CT_ID" "$CT_HOSTNAME" "$CT_IP" 2 1024 8 \
+  --unprivileged 0 --startup order=4,up=30
+# Allow multicast (HDHomeRun discovery)
+grep -q 'lxc.cap.drop' /etc/pve/lxc/${CT_ID}.conf 2>/dev/null || \
   echo "lxc.cap.drop =" >> /etc/pve/lxc/${CT_ID}.conf
-
-  pct start $CT_ID
-  sleep 8
-fi
+p7_ct_start_and_wait "$CT_ID"
 
 # ── Install build tools + hdhomerun_config from source ───────
-log "Installing build tools and dependencies..."
-pct exec $CT_ID -- bash -c "
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq
-  apt-get install -y --no-install-recommends \
-    build-essential git curl wget ca-certificates \
-    gnupg apt-transport-https python3 libssl-dev 2>/dev/null || true
-"
+p7_info "Installing build tools and dependencies..."
+p7_ct_run "$CT_ID" <<'BASH'
+apt-get install -y --no-install-recommends \
+  build-essential git curl wget ca-certificates \
+  gnupg apt-transport-https python3 libssl-dev
+BASH
 
-log "Building hdhomerun_config from SiliconDust source..."
+p7_info "Building hdhomerun_config from SiliconDust source..."
 pct exec $CT_ID -- bash -c "
   cd /tmp
   rm -rf libhdhomerun*
@@ -95,7 +70,7 @@ pct exec $CT_ID -- bash -c "
 "
 
 # ── Install TVHeadend ─────────────────────────────────────────
-log "Installing TVHeadend..."
+p7_info "Installing TVHeadend..."
 pct exec $CT_ID -- bash -c "
   export DEBIAN_FRONTEND=noninteractive
 
@@ -121,7 +96,7 @@ pct exec $CT_ID -- bash -c "
 "
 
 # ── Configure TVHeadend service ───────────────────────────────
-log "Configuring TVHeadend service..."
+p7_info "Configuring TVHeadend service..."
 pct exec $CT_ID -- bash -c "
   cat > /etc/default/tvheadend <<'SVCEOF'
 TVH_ARGS="-C -u hts -g video --http_port 9981 --htsp_port 9982 --nosatip"
@@ -138,7 +113,7 @@ SVCEOF
 "
 
 # ── Set open LAN access (no login required on local network) ──
-log "Configuring open LAN access control..."
+p7_info "Configuring open LAN access control..."
 pct exec $CT_ID -- bash -c "
   TVH_CFG=/home/hts/.hts/tvheadend
   for i in \$(seq 1 10); do [ -d \"\$TVH_CFG\" ] && break; sleep 2; done
@@ -165,7 +140,7 @@ ACLEOF
 "
 
 # ── Configure HDHomeRun IPTV network via TVH API ──────────────
-log "Creating HDHomeRun IPTV auto-network via API..."
+p7_info "Creating HDHomeRun IPTV auto-network via API..."
 pct exec $CT_ID -- bash -c "
   TVH='http://localhost:9981'
   for i in \$(seq 1 15); do
@@ -188,7 +163,7 @@ pct exec $CT_ID -- bash -c "
 "
 
 # ── Wait for scan, then map services → channels ───────────────
-log "Waiting 90s for channel scan to complete..."
+p7_info "Waiting 90s for channel scan to complete..."
 pct exec $CT_ID -- bash -c "
   TVH='http://localhost:9981'
   sleep 90
@@ -218,8 +193,14 @@ print('[' + ','.join('\\\"'+u+'\\\"' for u in uuids if u) + ']')
   echo \"Final network state: \$NET_INFO\"
 "
 
-log "
-============================================================
+CODE=$(p7_http_ok "http://${CT_IP}:9981" 200 20 || true)
+if [[ "$CODE" =~ ^(200|302|301|401)$ ]]; then
+  p7_ok "TVHeadend HTTP ${CODE} at http://${CT_IP}:9981"
+else
+  p7_error "TVHeadend did not respond. pct exec ${CT_ID} -- journalctl -u tvheadend -n 50"
+fi
+
+p7_ok "
 CT-$CT_ID TVHeadend deployed and configured.
 
   Web UI:    http://$CT_IP:9981   (no login required on LAN)
