@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Homarr Dashboard
+Comment=Homelab Dashboard — http://192.168.12.241:7575
+Exec=xdg-open http://192.168.12.241:7575
+Icon=user-home
+Terminal=false
+Type=Application
+Categories=Network;
+Keywords=homarr;dashboard;homelab;
+StartupNotify=false

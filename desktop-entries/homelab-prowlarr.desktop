@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Prowlarr
+Comment=Indexer Manager — http://192.168.12.210:9696
+Exec=xdg-open http://192.168.12.210:9696
+Icon=system-search
+Terminal=false
+Type=Application
+Categories=Network;
+Keywords=prowlarr;indexer;nzb;torrent;
+StartupNotify=false

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Sonarr
+Comment=TV Show Download Manager — http://192.168.12.214:8989
+Exec=xdg-open http://192.168.12.214:8989
+Icon=/home/loufogle/.local/share/icons/homelab/sonarr.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;TV;Network;
+Keywords=sonarr;tv;shows;download;torrent;
+StartupNotify=false

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Proxmox (Tiamat)
+Comment=Proxmox VE Host — https://192.168.12.242:8006
+Exec=xdg-open https://192.168.12.242:8006
+Icon=computer
+Terminal=false
+Type=Application
+Categories=System;Network;
+Keywords=proxmox;virtualization;lxc;vm;server;
+StartupNotify=false
