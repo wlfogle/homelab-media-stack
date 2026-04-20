@@ -11,13 +11,19 @@
 ## Live TV / OTA
 | CT | Service | URL | Notes | Status |
 |---|---|---|---|---|
-| — | HDHomeRun CONNECT | http://192.168.12.215 | Device ID: 1048EEE4, 46 OTA channels | ✅ active |
+| — | HDHomeRun CONNECT | http://192.168.12.215 | Device ID: 1048EEE4, 2 tuners, 46 OTA channels | ✅ active |
 | — | HDHomeRun M3U | http://192.168.12.215:5004/lineup.m3u | Direct from device | ✅ active |
-| Laptop | TVHeadend (snap) | http://192.168.12.172:9981 | Web UI — no login on LAN | ✅ running |
+| Laptop | TVHeadend (snap) | http://192.168.12.172:9981 | Web UI — no login on LAN, 46 channels mapped | ✅ running |
 | Laptop | TVHeadend HTSP | 192.168.12.172:9982 | For Jellyfin/TVHPlayer | ✅ running |
 | Laptop | TVH M3U (served) | http://192.168.12.172:8765/hdhomerun.m3u | systemd HTTP server | ✅ running |
-| CT-236 | TVHeadend (Tiamat) | http://192.168.12.236:9981 | Run scripts/deploy-tvheadend.sh to deploy | ⏹ not deployed |
-| CT-236 | TVHeadend HTSP | 192.168.12.236:9982 | For Jellyfin/TVHPlayer | ⏹ not deployed |
+| Laptop | EPG XMLTV | http://192.168.12.172:8766/epg.xml | zap2xml (154ch, 7-day, daily 3:30AM refresh) | ✅ running |
+| CT-231 | Jellyfin Live TV | http://192.168.12.231:8096 | HDHomeRun tuner + XMLTV EPG, DVR → /data/media/recordings | ✅ configured |
+
+## Alexa Bridge
+| CT | Service | URL | Notes | Status |
+|---|---|---|---|---|
+| CT-200 | Caddy HTTPS proxy | https://ha.lou-fogle-media-stack.duckdns.org | Let's Encrypt cert, reverse proxy → HA 192.168.12.123:8123 | ✅ running |
+| VM-990 | Home Assistant | http://192.168.12.123:8123 | HAOS, user: loufogle/homeassist | ✅ running |
 
 ## Download Stack
 | CT | Service | URL | User/API Key | Status |
