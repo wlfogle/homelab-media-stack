@@ -326,9 +326,17 @@ Save → TVH records every matching show automatically.
 
 | Setting | Value |
 |---|---|
-| Recording path | `/var/snap/tvheadend/common/recordings` |
+| Recording path | `/mnt/tiamat-recordings` (NFS → Tiamat `/mnt/hdd/media/recordings`) |
 | Retention | 7 days (auto-removed after import) |
 | Post-processor | `tvh-to-arr.sh` (calls Sonarr/Radarr after each recording) |
+
+Jellyfin CT-231 records to the same location via bind mount (`/data/media/recordings`).
+Both services share `/mnt/hdd/media/recordings` on Tiamat.
+
+NFS mount on laptop (persistent in `/etc/fstab`):
+```
+192.168.12.242:/mnt/hdd/media/recordings /mnt/tiamat-recordings nfs defaults,_netdev,soft,timeo=30 0 0
+```
 
 ### Post-process → Sonarr/Radarr Pipeline
 
