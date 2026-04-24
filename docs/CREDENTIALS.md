@@ -1,11 +1,11 @@
 # Media Stack Credentials & Access URLs
 
-> IPs verified against live Proxmox on 2026-04-11
+> IPs verified against live Proxmox on 2026-04-24
 
 ## Media Servers
 | CT | Service | URL | User | Pass | Status |
 |---|---|---|---|---|---|
-| CT-231 | Jellyfin | http://192.168.12.231:8096 | jellyfin | jellyfin | ✅ running |
+| CT-231 | Jellyfin | http://192.168.12.231:8096 | jellyfin | jellyfin | ✅ running (4 cores, 8GB RAM) |
 | CT-230 | Plex | http://192.168.12.230:32400/web | loufogle (Plex account) | — | ⏹ stopped |
 
 ## Live TV / OTA
@@ -16,8 +16,9 @@
 | Laptop | TVHeadend (snap) | http://192.168.12.172:9981 | Web UI — no login on LAN, 46 channels mapped | ✅ running |
 | Laptop | TVHeadend HTSP | 192.168.12.172:9982 | For Jellyfin/TVHPlayer | ✅ running |
 | Laptop | TVH M3U (served) | http://192.168.12.172:8765/hdhomerun.m3u | systemd HTTP server | ✅ running |
-| Laptop | EPG XMLTV | http://192.168.12.172:8766/epg.xml | zap2xml (154ch, 7-day, daily 3:30AM refresh) | ✅ running |
+| Laptop | EPG XMLTV | http://192.168.12.172:8766/epg.xml | zap2xml (75ch, 16K programmes, daily 3:30AM) | ✅ running |
 | CT-231 | Jellyfin Live TV | http://192.168.12.231:8096 | HDHomeRun tuner + XMLTV EPG, DVR → /data/media/recordings | ✅ configured |
+| Laptop | TVH DVR | /mnt/tiamat-recordings | NFS mount → Tiamat /mnt/hdd/media/recordings | ✅ mounted |
 
 ## Alexa Bridge
 | CT | Service | URL | Notes | Status |
