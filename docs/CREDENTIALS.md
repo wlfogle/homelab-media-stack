@@ -59,6 +59,7 @@
 | CT | Service | URL | Status |
 |---|---|---|---|
 | CT-275 | Homarr | http://192.168.12.241:7575 | ✅ running | homarr / eVSdq6xAF5pJFr9! |
+| CT-950 | Pulse | http://192.168.12.251:7655 | ✅ running | (set on first login) |
 | CT-276 | Homepage | — | ⏹ stopped |
 | CT-103 | Traefik | http://192.168.12.103:8080 | ✅ running |
 | CT-900 | Open WebUI (Ziggy) | http://192.168.12.250:3000 | ⏹ stopped (onboot: 0) |
