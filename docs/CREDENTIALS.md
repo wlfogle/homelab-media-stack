@@ -89,16 +89,24 @@
 | DietPi Dashboard | http://192.168.12.244:5252 | (DietPi login) | — |
 
 ## Remote Access
-| Service | URL |
-|---|---|
-| Jellyseerr (public) | https://tiamat-tailscale.tail9d8b73.ts.net/ |
+| Service | URL | Notes |
+|---|---|---|
+| Jellyfin (Tailscale Funnel) | https://tiamat-tailscale.tail9d8b73.ts.net/ | Public internet, no VPN needed |
+| Jellyfin (LAN) | http://192.168.12.231:8096 | Local network only |
 
 ## VNC
-| System | Address | Display |
+| System | Address | Display | Notes |
+|---|---|---|---|
+| Tiamat | 192.168.12.242:5900 | :0 (x11vnc) | GPU-rendered (RX 580), use this one |
+| Bahamut | 192.168.12.244:5901 | :1 (Xtigervnc + Warp) | |
+
+Laptop launcher: "Tiamat (VNC)" in app menu → `xtigervncviewer 192.168.12.242:5900`
+
+## NFS Mounts (Laptop)
+| Mount Point | Source | Mode |
 |---|---|---|
-| Tiamat | 192.168.12.242:5900 | :0 (x11vnc) |
-| Tiamat | 192.168.12.242:5901 | :1 (Xtigervnc + Warp) |
-| Bahamut | 192.168.12.244:5901 | :1 (Xtigervnc + Warp) |
+| /mnt/tiamat-media | 192.168.12.242:/mnt/hdd/media | read-only (full library) |
+| /mnt/tiamat-recordings | 192.168.12.242:/mnt/hdd/media/recordings | read-write (DVR) |
 
 ## API Keys Reference
 | Service | Key |
