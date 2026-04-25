@@ -9,7 +9,8 @@ Tiamat (Proxmox) - 192.168.12.242
 ├── Infrastructure
 │   ├── CT-100 wireguard      192.168.12.100  WireGuard server
 │   ├── CT-101 wg-proxy       192.168.12.101  WireGuard client + TinyProxy :8888
-│   ├── CT-102 flaresolverr   192.168.12.102  FlareSolverr :8191 (nodriver fork)
+│   ├── CT-102 flaresolverr   192.168.12.102  FlareSolverr :8191 (DEPRECATED — kept stopped)
+│   ├── CT-109 byparr         192.168.12.109  Byparr :8191 (Cloudflare bypass, replaces FlareSolverr)
 │   ├── CT-103 traefik        192.168.12.103  Traefik reverse proxy
 │   ├── CT-104 vaultwarden    192.168.12.104  Vaultwarden :80
 │   ├── CT-105 valkey         192.168.12.105  Valkey (Redis) :6379
@@ -140,6 +141,9 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 - Seerr 3.1.0 Jellyfin sync returns 400 ("Guid can't be empty" on /Items/Latest) — cosmetic, does not block requests. Fix expected in Seerr v3.2.0.
 - CT-278 CrowdSec stopped and deferred.
 - Legacy stopped CTs (CT-244 tautulli, CT-245 kometa, CT-277 recyclarr shell) were retired in Phase 7 — kometa/tautulli are Plex-only and we run Jellyfin; recyclarr now lives at CT-245 installed natively. Run `PHASE7_DESTROY_STALE=1 bash scripts/deploy-phase7.sh` on a fresh host to reproduce the cleanup.
+- **CT-102 FlareSolverr is deprecated** (kept stopped). Cloudflare bypass is now handled by **CT-109 Byparr** at `http://192.168.12.109:8191`. Any service still pointing at CT-102 must be re-wired to CT-109.
+- **CT-213 RDT-Client rebuilt 2026-04-25**: hostname renamed `decypharr` → `rdtclient`, rootfs migrated from `hdd-ct` (HDD-loopback) to `local-lvm` (SSD), DB+logs moved to `/data/rdtclient/{db,logs}/` (bind mount) so they survive any future rootfs rebuild. Host `rclone-decypharr-rd.service` (the only place "decypharr" was actually being used) is stopped, disabled, and masked. See `docs/CT-213-RDTCLIENT.md`.
+- **udisks2 disabled+masked on Proxmox host** (it was auto-mounting `.raw` LXC disk files under `/media/root/<uuid>` which conflicted with `pct move-volume` and prevented loop devices from detaching). Servers don't need udisks; do not re-enable.
 
 ## 📚 Docs
 
@@ -154,6 +158,7 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 - `docs/INDEXERS.md`
 - `docs/BACKUPS.md`
 - `docs/REAL-DEBRID.md`
+- `docs/CT-213-RDTCLIENT.md` — RDT-Client identity, storage tiering, recovery procedure
 - `docs/TIAMAT-AGENT-FIXES.md` — Fix runbooks for Readarr, Lidarr, Audiobookshelf, Calibre-Web, FlareSolverr
 - `docs/TIAMAT-PHASE7.md` — Phase 7 deployment runbook (recyclarr, jellystat, decluttarr, uptime-kuma, threadfin, dispatcharr)
 - `docs/HOME-ASSISTANT.md` — VM-500 HAOS config, known issues, deploy instructions

@@ -33,11 +33,11 @@
 | CT-210 | Prowlarr | http://192.168.12.210:9696 | API: 6719026a4a5042a99897597122fa4495 | ✅ running |
 | CT-211 | Jackett | http://192.168.12.211:9117 | — | ✅ running |
 | CT-214 | Sonarr | http://192.168.12.214:8989 | API: 9e2127824e7446f6a2ddc5da67cfe693 | ✅ running |
-| CT-215 | Radarr | http://192.168.12.225:7878 | API: cc7485c9f5a64f78bfd226ffe23e2991 | ✅ running |
+| CT-215 | Radarr | http://192.168.12.225:7878 | API: 19e51404b34548aabf48076073898d0d | ✅ running |
 | CT-217 | Readarr | http://192.168.12.217:8787 | API: 19566aa7fb90487ebd2c643ad8c6595d | ✅ running |
 | CT-218 | Lidarr | http://192.168.12.218:8686 | API: 3ff130f5566448e4bc0ce42bdf24c24e | ✅ running |
 | CT-221 | Mylar3 | http://192.168.12.221:8090 | — | ✅ running |
-| CT-213 | RDT-Client | http://192.168.12.213:6500 | admin / Rdtclient2026! | ✅ running |
+| CT-213 | RDT-Client (hostname `rdtclient`, ex-`decypharr`) | http://192.168.12.213:6500 | admin / Rdtclient2026! | ✅ running |
 
 ## Media Management
 | CT | Service | URL | User | Pass | Status |
@@ -114,7 +114,7 @@ Laptop launcher: "Tiamat (VNC)" in app menu → `xtigervncviewer 192.168.12.242:
 |---|---|
 | Prowlarr | 6719026a4a5042a99897597122fa4495 |
 | Sonarr | 9e2127824e7446f6a2ddc5da67cfe693 |
-| Radarr | cc7485c9f5a64f78bfd226ffe23e2991 |
+| Radarr | 19e51404b34548aabf48076073898d0d |
 | Readarr | 19566aa7fb90487ebd2c643ad8c6595d |
 | Lidarr | 3ff130f5566448e4bc0ce42bdf24c24e |
 | Plex Token | mixMERF9aEJxg9HrDzZW |
