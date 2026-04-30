@@ -1,11 +1,25 @@
 ---
 # ============================================================
-# Ziggy AI — CT-900 (Open WebUI + SearXNG)
-# Open WebUI :3000 → Ollama on laptop (192.168.12.172:11434)
+# Ziggy AI — CT-900 (Open WebUI + SearXNG + Ollama)
+# Open WebUI :3000 → Ollama local (CT-900 :11434)
 # SearXNG :8081 → private web search backend for Open WebUI
+# Ollama :11434 → CPU-based LLM inference
 # ============================================================
 
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      - TZ=${TZ:-America/New_York}
+      - OLLAMA_MODELS=/mnt/models
+    volumes:
+      - /mnt/laptop-models:/mnt/models:ro
+      - /opt/appdata/ollama:/root/.ollama
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -13,13 +27,15 @@ services:
     ports:
       - "3000:8080"
     environment:
-      - OLLAMA_BASE_URL=${OLLAMA_HOST:-http://192.168.12.172:11434}
+      - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_AUTH=false
       - TZ=${TZ:-America/New_York}
     volumes:
       - /opt/appdata/open-webui:/app/backend/data
     extra_hosts:
       - host.docker.internal:host-gateway
+    depends_on:
+      - ollama
 
   searxng:
     image: searxng/searxng:latest

@@ -121,3 +121,4 @@ Laptop launcher: "Tiamat (VNC)" in app menu → `xtigervncviewer 192.168.12.242:
 | TMDb | 47ef060c8451984321a70c2a07c63bce |
 | Real Debrid | S637QWEA454DIRAVGD5MKVAU7CH62FMASOSSXQNY5ERTJCFKINKQ |
 | Jellyfin (Oz-Agent) | 849ce95e446c4fbaa6b948c4d548b0eb |
+ |Pulse Token: | a5bac95b282323b78364c8375ce8a6439e14b35b348b846f |

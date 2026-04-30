@@ -70,6 +70,8 @@ All containers bind-mount `/mnt/hdd` → `/data` so paths are consistent.
   - vfio.conf GPU IDs removed so amdgpu claims GPU at boot
   - CT-231 LXC config: `lxc.cgroup2.devices.allow: c 226:0/128 rwm` + `/dev/dri` bind mount
   - Inside CT-231: `render` group GID set to 993, jellyfin user in `video` and `render` groups
+  - Host udev rule `/etc/udev/rules.d/99-jellyfin-dri.rules`: `MODE="0666"` on renderD128 (unprivileged container needs world-readable device)
+  - Note: `udevadm trigger` does not retroactively apply MODE to existing devices; `chmod 666 /dev/dri/renderD128` required after each boot until kernel fix
 - **Plex**: CPU-only (CT-230 stopped, Jellyfin preferred)
 - **Tdarr** (planned): Laptop RTX 4080 as NVENC transcoding worker.
 
@@ -79,10 +81,21 @@ All containers bind-mount `/mnt/hdd` → `/data` so paths are consistent.
 - CT-110/111 pulse: `order=2,up=15`
 - CT-217 readarr, CT-218 lidarr, CT-221 mylar3, CT-232 audiobookshelf, CT-233 calibre-web: `onboot=0` (disabled)
 
-### Jellyfin Database Maintenance (2026-04-30)
-- SQLite WAL files removed and VACUUM run to fix `database is locked` errors causing buffering
-- Slow plugins disabled: Spotify Import, IntroSkipper (moved to `/var/lib/jellyfin/plugins-disabled/`)
-- TVHeadend plugin requires username configuration (Dashboard → Plugins → TVHeadend)
+### SQLite Database Maintenance (2026-04-30)
+All *arr services + Jellyfin were experiencing `database is locked` errors causing failures and buffering.
+Fix applied to: CT-231 Jellyfin, CT-210 Prowlarr, CT-214 Sonarr, CT-215 Radarr
+
+```bash
+# Run on Proxmox host to fix any arr service CT:
+pct exec <CT> -- bash -c "systemctl stop <service>; \
+  find /var/lib -name '*.db-wal' -o -name '*.db-shm' | xargs rm -fv; \
+  find /var/lib -name '*.db' | while read db; do \
+    sqlite3 \"\$db\" 'PRAGMA wal_checkpoint(TRUNCATE); VACUUM;'; done; \
+  systemctl start <service>"
+```
+
+- Jellyfin: Slow plugins disabled — Spotify Import, IntroSkipper (moved to `/var/lib/jellyfin/plugins-disabled/`)
+- TVHeadend plugin configured: admin@192.168.12.172:9981 (CT-231)
 
 ---
 
