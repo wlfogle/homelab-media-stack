@@ -18,6 +18,12 @@ android-app/local.properties
 *.key
 *.pem
 
+# Local session logs / scratch notes (may contain API keys, passwords, etc.)
+fuckup_ai_agent.md
+session-*.md
+*.local-backup
+/etc/jellyfin-autoscan.env
+
 # OS junk
 .DS_Store
 Thumbs.db
