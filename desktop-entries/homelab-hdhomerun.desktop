@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=HDHomeRun Admin
+Comment=HDHomeRun CONNECT tuner management (192.168.12.215)
+Exec=xdg-open http://192.168.12.215
+Icon=video-television
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;TV;Network;
+Keywords=hdhomerun;tuner;tv;ota;antenna;
+StartupNotify=false

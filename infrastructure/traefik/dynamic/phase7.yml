@@ -1,0 +1,38 @@
+# Phase 7 — extra services. Recyclarr + Decluttarr are headless (no
+# UI) so they intentionally have no router here.
+http:
+  routers:
+    jellystat:
+      rule: "Host(`jellystat.tiamat.local`)"
+      entryPoints: [web]
+      service: jellystat
+    uptime:
+      rule: "Host(`uptime.tiamat.local`) || Host(`uptimekuma.tiamat.local`)"
+      entryPoints: [web]
+      service: uptime
+    threadfin:
+      rule: "Host(`threadfin.tiamat.local`)"
+      entryPoints: [web]
+      service: threadfin
+    dispatcharr:
+      rule: "Host(`dispatcharr.tiamat.local`)"
+      entryPoints: [web]
+      service: dispatcharr
+
+  services:
+    jellystat:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.247:3000"
+    uptime:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.248:3001"
+    threadfin:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.234:34400"
+    dispatcharr:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.235:9191"

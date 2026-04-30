@@ -129,6 +129,10 @@ Dynamic route files live in `infrastructure/traefik/dynamic/`.
 | `vault.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (via serversTransport skip-verify) |
 | `vaultwarden.tiamat.local` | Vaultwarden (CT-104) | `https://192.168.12.104:443` (alias) |
 | `auth.tiamat.local` | Authentik (CT-107) | `192.168.12.107:9000` |
+| `jellystat.tiamat.local` | Jellystat (CT-247) | `192.168.12.247:3000` |
+| `uptime.tiamat.local` | Uptime Kuma (CT-248) | `192.168.12.248:3001` |
+| `threadfin.tiamat.local` | Threadfin (CT-234) | `192.168.12.234:34400` |
+| `dispatcharr.tiamat.local` | Dispatcharr (CT-235) | `192.168.12.235:9191` |
 
 \* CT-242 has static IP 192.168.12.151. CT-240 is DHCP — set a static reservation on the router.
 CT-242 runs Seerr natively (no Docker). Proxmox vmbr0 has static ARP for Radarr: `ip neigh replace 192.168.12.225 dev vmbr0 lladdr BC:24:11:2A:83:BB nud permanent`

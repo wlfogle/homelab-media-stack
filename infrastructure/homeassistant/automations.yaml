@@ -1,0 +1,121 @@
+# ============================================================
+# Automations — Alert, Schedule, Self-heal
+# ============================================================
+
+# ── Daily morning briefing at 08:00 ──────────────────────────
+- id: daily_morning_report
+  alias: "Daily Morning Report"
+  trigger:
+    - platform: time
+      at: "08:00:00"
+  action:
+    - service: script.morning_routine
+
+# ── Service down — Jellyfin ───────────────────────────────────
+- id: alert_jellyfin_down
+  alias: "Alert — Jellyfin Down"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.jellyfin
+      to: "off"
+      for: "00:02:00"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "🚨 ALERT — Jellyfin Offline"
+        message: >
+          CT-231 (192.168.12.231:8096) has been unreachable for 2 minutes.
+          Check: ssh root@192.168.12.242 'pct status 231'
+
+# ── Service down — Traefik ────────────────────────────────────
+- id: alert_traefik_down
+  alias: "Alert — Traefik Down"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.traefik
+      to: "off"
+      for: "00:02:00"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "🚨 ALERT — Traefik Down"
+        message: >
+          CT-103 (192.168.12.103) has been unreachable for 2 minutes.
+          All *.tiamat.local routes are down.
+          Check: ssh root@192.168.12.242 'pct status 103'
+
+# ── Service down — Sonarr ─────────────────────────────────────
+- id: alert_sonarr_down
+  alias: "Alert — Sonarr Down"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.sonarr
+      to: "off"
+      for: "00:05:00"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "⚠️ Sonarr Offline"
+        message: "CT-214 (192.168.12.214:8989) unreachable for 5 min."
+
+# ── Service down — Radarr ─────────────────────────────────────
+- id: alert_radarr_down
+  alias: "Alert — Radarr Down"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.radarr
+      to: "off"
+      for: "00:05:00"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "⚠️ Radarr Offline"
+        message: "CT-225 (192.168.12.225:7878) unreachable for 5 min."
+
+# ── Service down — Ollama ─────────────────────────────────────
+- id: alert_ollama_down
+  alias: "Alert — Ollama Down"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ollama
+      to: "off"
+      for: "00:05:00"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "⚠️ Ollama Offline"
+        message: >
+          Laptop Ollama (192.168.12.172:11434) unreachable for 5 min.
+          AI voice commands will fall back to basic mode.
+
+# ── Service recovers — Jellyfin ───────────────────────────────
+- id: alert_jellyfin_recovered
+  alias: "Alert — Jellyfin Recovered"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.jellyfin
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.jellyfin
+      state: "off"
+      for: "00:01:00"
+      before: true
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "✅ Jellyfin Back Online"
+        message: "CT-231 (192.168.12.231:8096) is responding again."
+
+# ── Weekly library scan — Sunday 03:00 ───────────────────────
+- id: weekly_library_scan
+  alias: "Weekly Library Scan"
+  trigger:
+    - platform: time
+      at: "03:00:00"
+  condition:
+    - condition: time
+      weekday:
+        - sun
+  action:
+    - service: script.media_scan

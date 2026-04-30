@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Radarr
+Comment=Movie Download Manager — http://192.168.12.215:7878
+Exec=xdg-open http://192.168.12.215:7878
+Icon=/home/loufogle/.local/share/icons/homelab/radarr.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;Network;
+Keywords=radarr;movies;download;torrent;
+StartupNotify=false

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=qBittorrent (Server)
+Comment=qBittorrent Web UI — http://192.168.12.212:8080
+Exec=xdg-open http://192.168.12.212:8080
+Icon=qbittorrent
+Terminal=false
+Type=Application
+Categories=Network;P2P;
+Keywords=qbittorrent;torrent;download;
+StartupNotify=false

@@ -1,0 +1,63 @@
+# Exit the container first
+exit
+
+# Destroy the empty container
+pct stop 950
+pct destroy 950 --purge
+
+# Re-run the official Pulse installer (creates a new LXC with Pulse installed)
+curl -fsSL https://github.com/rcourtman/Pulse/releases/latest/download/install.sh | bash
+
+# Replace <CTID> with whatever ID the installer chose
+pct set <CTID> -net0 name=eth0,bridge=vmbr0,gw=192.168.12.1,ip=192.168.12.251/24,type=veth
+pct reboot <CTID>
+
+Then access at http://192.168.12.251:7655
+
+root@pulse:/# curl -fsSL https://raw.githubusercontent.com/rcourtman/Pulse/release/5.1/install.sh | bash
+=================================================
+           Pulse Installation Script
+=================================================
+
+[INFO] Installing dependencies...
+[INFO] Creating pulse user...
+[INFO] Setting up directories...
+[INFO] Downloading Pulse...
+[INFO] Latest version: v5.1.28
+[INFO] Detected architecture: x86_64 (amd64)
+[INFO] Downloading from: https://github.com/rcourtman/Pulse/releases/download/v5.1.28/pulse-v5.1.28-linux-amd64.tar.gz
+[WARN] Docker agent binary not found in archive; skipping installation
+[SUCCESS] Host agent binary installed
+[SUCCESS] Additional host agent binaries installed
+[SUCCESS] Unified agent binaries installed
+[SUCCESS] Deployed 8 agent installation script(s)
+[SUCCESS] Pulse binary installed to /opt/pulse/bin/pulse
+[SUCCESS] Symlink created at /usr/local/bin/pulse
+[SUCCESS] Version verified: v5.1.28
+[INFO] Installing systemd service...
+Failed to list unit files: Connection timed out
+Failed to list unit files: Transport endpoint is not connected
+[INFO] Starting Pulse...
+[INFO] Note: systemctl enable failed (may be in unprivileged container)
+[INFO] Note: systemctl enable failed (common in unprivileged containers)
+[INFO] Note: systemctl start failed (may be in unprivileged container)
+[INFO] Note: systemctl start failed (common in unprivileged containers)
+[INFO] The service will start automatically when the container starts
+
+=================================================
+           Pulse Installation Script
+=================================================
+
+[SUCCESS] Pulse installation completed!
+
+Access Pulse at: http://192.168.12.251:7655
+
+Quick commands:
+  systemctl status pulse    - Check status
+  systemctl restart pulse   - Restart
+  journalctl -u pulse -f    - View logs
+
+Management:
+  Update:     curl -sSL https://raw.githubusercontent.com/rcourtman/Pulse/release/5.1/install.sh | bash
+  Reset:      curl -sSL https://raw.githubusercontent.com/rcourtman/Pulse/release/5.1/install.sh | bash -s -- --reset
+  Uninstall:  curl -sSL https://raw.githubusercontent.com/rcourtman/Pulse/release/5.1/install.sh | bash -s -- --uninstall

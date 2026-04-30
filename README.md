@@ -9,7 +9,8 @@ Tiamat (Proxmox) - 192.168.12.242
 ├── Infrastructure
 │   ├── CT-100 wireguard      192.168.12.100  WireGuard server
 │   ├── CT-101 wg-proxy       192.168.12.101  WireGuard client + TinyProxy :8888
-│   ├── CT-102 flaresolverr   192.168.12.102  FlareSolverr :8191 (nodriver fork)
+│   ├── CT-102 flaresolverr   192.168.12.102  FlareSolverr :8191 (DEPRECATED — kept stopped)
+│   ├── CT-109 byparr         192.168.12.109  Byparr :8191 (Cloudflare bypass, replaces FlareSolverr)
 │   ├── CT-103 traefik        192.168.12.103  Traefik reverse proxy
 │   ├── CT-104 vaultwarden    192.168.12.104  Vaultwarden :80
 │   ├── CT-105 valkey         192.168.12.105  Valkey (Redis) :6379
@@ -19,7 +20,8 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-210 prowlarr       192.168.12.210  :9696  (primary indexer manager)
 │   ├── CT-211 jackett        192.168.12.211  :9117  (backup/failsafe indexers)
 │   ├── CT-212 qbittorrent    192.168.12.212  :8080  (VPN proxied, backup dl client)
-│   └── CT-213 rdtclient      192.168.12.213  :6500  (Real-Debrid, primary dl client)
+│   ├── CT-213 rdtclient      192.168.12.213  :6500  (Real-Debrid, primary dl client)
+│   └── CT-216 decluttarr     192.168.12.216  (no UI)  *arr queue janitor
 ├── Media Acquisition (*arr stack)
 │   ├── CT-214 sonarr         192.168.12.214  :8989  (TV → RDT-Client)
 │   ├── CT-215 radarr         192.168.12.225  :7878  (Movies → RDT-Client)
@@ -27,21 +29,30 @@ Tiamat (Proxmox) - 192.168.12.242
 │   ├── CT-218 lidarr         192.168.12.218  :8686  (Music → qBittorrent)
 │   └── CT-221 mylar3         192.168.12.221  :8090  (Comics → qBittorrent)
 ├── Media Servers
-│   ├── CT-230 plex           192.168.12.230  :32400
+│   ├── CT-230 plex           192.168.12.230  :32400 (stopped, Jellyfin is primary)
 │   └── CT-231 jellyfin       192.168.12.231  :8096  (primary)
 ├── Media Hosting
 │   ├── CT-232 audiobookshelf 192.168.12.232  :13378 (audiobooks)
 │   └── CT-233 calibre-web    192.168.12.233  :8083  (ebooks)
+├── Live TV / IPTV
+│   ├── CT-234 threadfin      192.168.12.234  :34400 (M3U/XMLTV proxy → Jellyfin)
+│   └── CT-235 dispatcharr    192.168.12.235  :9191  (IPTV stream + EPG manager)
 ├── Request & Management
 │   ├── CT-240 bazarr         DHCP            :6767  (subtitles)
 │   └── CT-242 seerr          DHCP            :5055  (TV/movie requests)
-├── Monitoring (stopped)
-│   ├── CT-277 recyclarr      —               not installed, CT shell only
+├── Quality + Stats
+│   ├── CT-245 recyclarr      192.168.12.245  (cron)   TRaSH-guide sync to Sonarr/Radarr
+│   └── CT-247 jellystat      192.168.12.247  :3000    Jellyfin usage/playback stats
+├── Monitoring
+│   ├── CT-248 uptime-kuma    192.168.12.248  :3001  (replaces scripts/stack-watchdog.sh)
 │   └── CT-278 crowdsec       —               stopped, deferred
 ├── Networking
 │   └── CT-279 tailscale      192.168.12.220  Tailscale mesh VPN
-└── AI
-    └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
+├── AI
+│   └── CT-900 ziggy          DHCP            Open WebUI :3000 + SearXNG :8081
+├── Smart Home & Voice Control
+│   ├── VM-500 home-assistant 192.168.12.250  HAOS :8123  (Phase 10)
+│   └── CT-501 habridge        192.168.12.251  HABridge :8080 (Alexa/Hue emulation)
 
 Bahamut (DietPi) - 192.168.12.244
 ├── AdGuard Home       :53, :8081  (DNS filtering, Docker)
@@ -84,6 +95,8 @@ All *arr apps with Jellyfin support have MediaBrowser notifications configured t
 
 All services reachable via `*.tiamat.local` — see `docs/NETWORKING.md` for full table.
 Traefik dashboard: `http://traefik.tiamat.local` (or `http://192.168.12.103:8080`)
+Home Assistant: `http://ha.tiamat.local` (or `http://192.168.12.250:8123`)
+HABridge UI: `http://habridge.tiamat.local` (or `http://192.168.12.251:8080`)
 
 ## 🔐 Download VPN Path
 
@@ -126,8 +139,11 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 ## ⚠️ Known Issues
 
 - Seerr 3.1.0 Jellyfin sync returns 400 ("Guid can't be empty" on /Items/Latest) — cosmetic, does not block requests. Fix expected in Seerr v3.2.0.
-- CT-277 Recyclarr is an empty CT shell — not installed.
 - CT-278 CrowdSec stopped and deferred.
+- Legacy stopped CTs (CT-244 tautulli, CT-245 kometa, CT-277 recyclarr shell) were retired in Phase 7 — kometa/tautulli are Plex-only and we run Jellyfin; recyclarr now lives at CT-245 installed natively. Run `PHASE7_DESTROY_STALE=1 bash scripts/deploy-phase7.sh` on a fresh host to reproduce the cleanup.
+- **CT-102 FlareSolverr is deprecated** (kept stopped). Cloudflare bypass is now handled by **CT-109 Byparr** at `http://192.168.12.109:8191`. Any service still pointing at CT-102 must be re-wired to CT-109.
+- **CT-213 RDT-Client rebuilt 2026-04-25**: hostname renamed `decypharr` → `rdtclient`, rootfs migrated from `hdd-ct` (HDD-loopback) to `local-lvm` (SSD), DB+logs moved to `/data/rdtclient/{db,logs}/` (bind mount) so they survive any future rootfs rebuild. Host `rclone-decypharr-rd.service` (the only place "decypharr" was actually being used) is stopped, disabled, and masked. See `docs/CT-213-RDTCLIENT.md`.
+- **udisks2 disabled+masked on Proxmox host** (it was auto-mounting `.raw` LXC disk files under `/media/root/<uuid>` which conflicted with `pct move-volume` and prevented loop devices from detaching). Servers don't need udisks; do not re-enable.
 
 ## 📚 Docs
 
@@ -142,4 +158,9 @@ This setting is stored in File Browser's BoltDB database at `/usr/local/communit
 - `docs/INDEXERS.md`
 - `docs/BACKUPS.md`
 - `docs/REAL-DEBRID.md`
+- `docs/CT-213-RDTCLIENT.md` — RDT-Client identity, storage tiering, recovery procedure
 - `docs/TIAMAT-AGENT-FIXES.md` — Fix runbooks for Readarr, Lidarr, Audiobookshelf, Calibre-Web, FlareSolverr
+- `docs/TIAMAT-PHASE7.md` — Phase 7 deployment runbook (recyclarr, jellystat, decluttarr, uptime-kuma, threadfin, dispatcharr)
+- `docs/HOME-ASSISTANT.md` — VM-500 HAOS config, known issues, deploy instructions
+- `docs/VOICE-CONTROL.md` — Star Trek computer voice control (Alexa + HABridge + Ollama AI)
+- `infrastructure/homeassistant/` — HA config source files (deploy with `deploy.sh`)

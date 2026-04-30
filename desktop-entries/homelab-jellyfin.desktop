@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Jellyfin
+Comment=Jellyfin Media Server — http://192.168.12.231:8096
+Exec=xdg-open http://192.168.12.231:8096
+Icon=/home/loufogle/.local/share/icons/homelab/jellyfin.svg
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;Player;Network;
+Keywords=jellyfin;media;movies;tv;streaming;
+StartupNotify=false

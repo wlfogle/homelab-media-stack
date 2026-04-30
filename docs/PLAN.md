@@ -56,7 +56,8 @@ VMs / Special
 │                                               ⚠ RAM constrained until Tiamat upgrade — stop CTs before gaming
 ├── CT-900 ziggy               DHCP             Open WebUI :3000, SearXNG :8081 — AI frontend
 │                                               Ollama served by laptop RTX 4080 at 192.168.12.172:11434
-└── CT-950 agent-comms         DHCP             Agent communication broker
+├── CT-950 pulse               192.168.12.251   Pulse monitoring dashboard :7655
+└── CT-951 agent-comms         DHCP             Agent communication broker
 
 Laptop — GPU inference server (192.168.12.172)
 ├── Ollama :11434 (RTX 4080, 12GB VRAM)   LLM inference for entire stack

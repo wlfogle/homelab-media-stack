@@ -1,0 +1,35 @@
+http:
+  routers:
+    # TVHeadend on Tiamat CT-236 (primary)
+    tvheadend-tiamat:
+      rule: "Host(`tvheadend.tiamat.local`) || Host(`tvh.tiamat.local`)"
+      entryPoints: [web]
+      service: tvheadend-tiamat
+
+    # TVHeadend on laptop (dev / fallback)
+    tvheadend-laptop:
+      rule: "Host(`tvheadend.laptop.local`) || Host(`tvh.laptop.local`)"
+      entryPoints: [web]
+      service: tvheadend-laptop
+
+    # HDHomeRun CONNECT device admin UI
+    hdhomerun:
+      rule: "Host(`hdhomerun.tiamat.local`)"
+      entryPoints: [web]
+      service: hdhomerun
+
+  services:
+    tvheadend-tiamat:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.236:9981"
+
+    tvheadend-laptop:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.172:9981"
+
+    hdhomerun:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.12.215"

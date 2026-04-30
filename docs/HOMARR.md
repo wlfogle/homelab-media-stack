@@ -50,6 +50,20 @@ Add each app via **Add tile → App**. Set the URL, icon (auto-detected from URL
 | Audiobookshelf | http://192.168.12.232:13378 | audiobookshelf |
 | Calibre-Web | http://192.168.12.233:8083 | calibre-web |
 
+### Live TV / IPTV
+| App | URL | Icon |
+|-----|-----|------|
+| Threadfin | http://192.168.12.234:34400/web | threadfin |
+| Dispatcharr | http://192.168.12.235:9191 | dispatcharr |
+
+### Monitoring & Quality
+| App | URL | Icon |
+|-----|-----|------|
+| Jellystat | http://192.168.12.247:3000 | jellystat |
+| Uptime Kuma | http://192.168.12.248:3001 | uptime-kuma |
+| Recyclarr | (no UI — cron CT-245) | recyclarr |
+| Decluttarr | (no UI — journald CT-216) | decluttarr |
+
 ### Infrastructure
 | App | URL | Icon |
 |-----|-----|------|

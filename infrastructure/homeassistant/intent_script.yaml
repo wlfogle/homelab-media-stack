@@ -1,0 +1,74 @@
+# ============================================================
+# Intent Scripts — HA Assist / Conversation
+# Wake word: "Computer" (configure in Settings → Voice Assistants)
+# These handle natural-language phrases routed by the Assist pipeline
+# backed by Ollama (http://192.168.12.172:11434)
+# ============================================================
+
+ComputerStatus:
+  description: "Full system status report"
+  action:
+    - service: script.system_status
+    - set_conversation_response: >
+        Tiamat systems online. Proxmox
+        {{ 'nominal' if is_state('binary_sensor.tiamat_proxmox','on') else 'OFFLINE' }},
+        Jellyfin
+        {{ 'streaming' if is_state('binary_sensor.jellyfin','on') else 'OFFLINE' }},
+        Ollama AI
+        {{ 'ready' if is_state('binary_sensor.ollama','on') else 'OFFLINE' }}.
+        {{ states('sensor.sonarr_queue') }} items in download queue.
+
+ComputerMovieNight:
+  description: "Activate movie night mode"
+  action:
+    - service: script.movie_night
+    - set_conversation_response: >
+        Activating movie night. Jellyfin is
+        {{ 'online with ' + states('sensor.jellyfin_active_streams') + ' active streams' if is_state('binary_sensor.jellyfin','on') else 'OFFLINE — check CT-231' }}.
+
+ComputerDownloads:
+  description: "Check download queue status"
+  action:
+    - service: script.download_status
+    - set_conversation_response: >
+        Download status: Sonarr has {{ states('sensor.sonarr_queue') }} items,
+        Radarr has {{ states('sensor.radarr_queue') }} items queued.
+        RDT Client is {{ 'online' if is_state('binary_sensor.rdt_client','on') else 'offline' }}.
+
+ComputerAI:
+  description: "AI services status"
+  action:
+    - service: script.ai_status
+    - set_conversation_response: >
+        AI systems: {{ states('sensor.ollama_status') }}.
+        Open WebUI available at port 3000.
+
+ComputerPause:
+  description: "Pause all media playback"
+  action:
+    - service: script.pause_all_media
+    - set_conversation_response: "All media playback paused."
+
+ComputerScan:
+  description: "Scan all media libraries"
+  action:
+    - service: script.media_scan
+    - set_conversation_response: >
+        Library scan initiated across Jellyfin, Sonarr, and Radarr.
+
+ComputerMorning:
+  description: "Morning briefing"
+  action:
+    - service: script.morning_routine
+    - set_conversation_response: >
+        Good morning, Commander. Tiamat is online.
+        {{ states('sensor.sonarr_queue') }} TV episodes and
+        {{ states('sensor.radarr_queue') }} movies in queue.
+
+ComputerReport:
+  description: "Full diagnostic report"
+  action:
+    - service: script.computer_report
+    - set_conversation_response: >
+        Full report compiled. All services checked.
+        Tiamat: {{ 'nominal' if is_state('binary_sensor.tiamat_proxmox','on') else 'DEGRADED' }}.

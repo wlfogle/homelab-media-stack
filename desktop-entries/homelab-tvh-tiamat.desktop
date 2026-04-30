@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=TVHeadend (Tiamat)
+Comment=TVHeadend DVR on Tiamat CT-236 — http://192.168.12.236:9981
+Exec=xdg-open http://192.168.12.236:9981
+Icon=/snap/tvheadend/current/usr/share/tvheadend/src/webui/static/img/logo.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;TV;Network;
+Keywords=tvheadend;dvr;tv;recording;tiamat;
+StartupNotify=false

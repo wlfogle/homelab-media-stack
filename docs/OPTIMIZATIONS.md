@@ -1,6 +1,6 @@
 # Optimizations — Tiamat & Bahamut Media Stack
 
-> Last updated: 2026-04-10
+> Last updated: 2026-04-30
 
 ## Tiamat — Proxmox VE (192.168.12.242)
 
@@ -8,7 +8,7 @@
 - **CPU**: AMD Ryzen 5 3600, 6c/12t
 - **RAM**: 32GB DDR4-3200 (upgraded from 8GB)
 - **Storage**: 240GB SSD (OS) + 2TB HDD (`/mnt/hdd` — media + downloads)
-- **GPU**: RX 580 4GB (VFIO passthrough to VM-901)
+- **GPU**: RX 580 4GB (amdgpu — passed to CT-231 Jellyfin via /dev/dri for VAAPI; VFIO disabled)
 - **Network**: Gigabit Ethernet
 
 ### Container RAM Allocation (applied 2026-04-10)
@@ -21,7 +21,7 @@
 | CT-214 Sonarr | 2048MB | 512MB | Bumped from 1GB for larger libraries |
 | CT-215 Radarr | 2048MB | 512MB | Bumped from 1GB for larger libraries |
 | CT-230 Plex | 8GB | — | Transcoding benefits from RAM |
-| CT-231 Jellyfin | 4GB | — | CPU transcode, prefer direct play |
+| CT-231 Jellyfin | 4GB | — | VAAPI hardware transcode via RX 580 (`/dev/dri` bind mount) |
 | CT-212 qBittorrent | 2GB | — | Sufficient for heavy downloading |
 | CT-210 Prowlarr | 1GB | — | Lightweight |
 | CT-102 FlareSolverr | 1GB | — | Chrome headless needs RAM |
@@ -30,7 +30,7 @@
 - **RAM**: 4GB, **CPU**: 4 cores, **cpulimit**: 2
 - **KVM**: Enabled (`kvm: 1`) — was running with `kvm: 0` (TCG software emulation) causing load 28+
 - **onboot**: Disabled — start manually when gaming, stop when done
-- GPU passthrough: RX 580 via VFIO
+- GPU passthrough: RX 580 via VFIO — **disabled** (amdgpu now default; re-add IDs to `/etc/modprobe.d/vfio.conf` if needed)
 
 ### Kernel Tuning (`/etc/sysctl.d/99-media-stack.conf`)
 - `vm.swappiness = 10` — prefer RAM over swap
@@ -65,8 +65,37 @@ Hard-link friendly — downloads and media on same filesystem (`/mnt/hdd`):
 All containers bind-mount `/mnt/hdd` → `/data` so paths are consistent.
 
 ### Transcoding
-- **Plex/Jellyfin**: CPU-only (GPU passed to VM-901). Ryzen 5 3600 handles 2-3 1080p streams.
+- **Jellyfin**: VAAPI hardware transcoding via RX 580 (`/dev/dri/renderD128` → CT-231).
+  - amdgpu loaded on host; `blacklist amdgpu` removed from `/etc/modprobe.d/blacklist.conf`
+  - vfio.conf GPU IDs removed so amdgpu claims GPU at boot
+  - CT-231 LXC config: `lxc.cgroup2.devices.allow: c 226:0/128 rwm` + `/dev/dri` bind mount
+  - Inside CT-231: `render` group GID set to 993, jellyfin user in `video` and `render` groups
+  - Host udev rule `/etc/udev/rules.d/99-jellyfin-dri.rules`: `MODE="0666"` on renderD128 (unprivileged container needs world-readable device)
+  - Note: `udevadm trigger` does not retroactively apply MODE to existing devices; `chmod 666 /dev/dri/renderD128` required after each boot until kernel fix
+- **Plex**: CPU-only (CT-230 stopped, Jellyfin preferred)
 - **Tdarr** (planned): Laptop RTX 4080 as NVENC transcoding worker.
+
+### CT Startup Order Changes (2026-04-30)
+- CT-231 Jellyfin: `order=3,up=30` (moved up to start early)
+- CT-109 byparr: `order=2,up=15`
+- CT-110/111 pulse: `order=2,up=15`
+- CT-217 readarr, CT-218 lidarr, CT-221 mylar3, CT-232 audiobookshelf, CT-233 calibre-web: `onboot=0` (disabled)
+
+### SQLite Database Maintenance (2026-04-30)
+All *arr services + Jellyfin were experiencing `database is locked` errors causing failures and buffering.
+Fix applied to: CT-231 Jellyfin, CT-210 Prowlarr, CT-214 Sonarr, CT-215 Radarr
+
+```bash
+# Run on Proxmox host to fix any arr service CT:
+pct exec <CT> -- bash -c "systemctl stop <service>; \
+  find /var/lib -name '*.db-wal' -o -name '*.db-shm' | xargs rm -fv; \
+  find /var/lib -name '*.db' | while read db; do \
+    sqlite3 \"\$db\" 'PRAGMA wal_checkpoint(TRUNCATE); VACUUM;'; done; \
+  systemctl start <service>"
+```
+
+- Jellyfin: Slow plugins disabled — Spotify Import, IntroSkipper (moved to `/var/lib/jellyfin/plugins-disabled/`)
+- TVHeadend plugin configured: admin@192.168.12.172:9981 (CT-231)
 
 ---
 
