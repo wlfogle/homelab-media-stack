@@ -1,0 +1,22 @@
+[Unit]
+Description=Jellyfin Autoscan — inotify watcher for /mnt/media
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/jellyfin-autoscan.env
+ExecStart=/usr/local/bin/jellyfin-autoscan.sh
+Restart=on-failure
+RestartSec=10
+# Hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+ReadOnlyPaths=/mnt/media
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

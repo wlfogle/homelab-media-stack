@@ -79,3 +79,8 @@ Supported `media_kind` values map to qBit categories:
 - `book`
 - `music`
 - `adult`
+## Related
+- [`docs/JELLYFIN-AUTOSCAN.md`](JELLYFIN-AUTOSCAN.md) — three-layer Jellyfin
+  library autoscan (real-time monitor + Connect webhook + host inotify
+  watcher + scheduled scan). The Connect webhook (Layer 2) is what
+  `ensure_jellyfin_notification` in this watchdog manages.
