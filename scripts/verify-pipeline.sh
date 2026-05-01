@@ -100,20 +100,25 @@ fi
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. Cloudflare bypass — FlareSolverr (CT-102) OR Byparr (CT-109)
-#    Byparr is a drop-in FlareSolverr replacement using Camoufox/Playwright.
-#    Either one being up satisfies the requirement.
+# 2. Cloudflare bypass — Byparr (CT-109, primary) / FlareSolverr (CT-102, backup)
+#    Byparr is the primary using Camoufox/Playwright; FlareSolverr is the
+#    legacy fallback. Byparr down + FlareSolverr down is a critical gap.
 # ─────────────────────────────────────────────────────────────────────────────
-echo "[2/8] Cloudflare bypass (FlareSolverr CT-102 / Byparr CT-109)"
-FLARE_CODE=$(http_code "$FLARESOLVERR_URL")
+echo "[2/8] Cloudflare bypass (Byparr primary CT-109 / FlareSolverr backup CT-102)"
 BYPARR_CODE=$(http_code "$BYPARR_URL")
+FLARE_CODE=$(http_code "$FLARESOLVERR_URL")
 # Byparr serves 405 on GET / (only POST allowed) — that's a healthy signal
-if [[ "$FLARE_CODE" =~ ^(200|301|302)$ ]]; then
-  check_pass "FlareSolverr responding (HTTP $FLARE_CODE)"
-elif [[ "$BYPARR_CODE" =~ ^(200|301|302|405)$ ]]; then
-  check_pass "Byparr responding (HTTP $BYPARR_CODE)"
+if [[ "$BYPARR_CODE" =~ ^(200|301|302|405)$ ]]; then
+  check_pass "Byparr responding (HTTP $BYPARR_CODE) — PRIMARY"
+  if [[ "$FLARE_CODE" =~ ^(200|301|302)$ ]]; then
+    check_pass "FlareSolverr responding (HTTP $FLARE_CODE) — backup"
+  else
+    check_warn "FlareSolverr down (HTTP $FLARE_CODE) — backup unavailable; Byparr is sole CF bypass"
+  fi
+elif [[ "$FLARE_CODE" =~ ^(200|301|302)$ ]]; then
+  check_warn "Byparr down (HTTP $BYPARR_CODE) — PRIMARY unavailable, falling back to FlareSolverr (HTTP $FLARE_CODE)"
 else
-  check_warn "No CF bypass available (FlareSolverr=$FLARE_CODE, Byparr=$BYPARR_CODE) — Cloudflare-protected indexers will fail"
+  check_fail "No CF bypass available (Byparr=$BYPARR_CODE, FlareSolverr=$FLARE_CODE) — Cloudflare-protected indexers will fail"
 fi
 echo ""
 
