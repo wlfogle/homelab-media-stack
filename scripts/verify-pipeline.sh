@@ -50,9 +50,19 @@ http_code() {
   curl -sL -o /dev/null -w '%{http_code}' --max-time 15 "$@" 2>/dev/null || printf '000'
 }
 
-# Curl helper with consistent longer timeout for API queries
+# Curl helper with consistent longer timeout for API queries.
+# Retries up to 3 times so transient IO contention on Tiamat (e.g. during a
+# vzdump backup) doesn't false-positive a "broken" pipeline.
 api_curl() {
-  curl -s --max-time 20 "$@" 2>/dev/null
+  local out
+  for _ in 1 2 3; do
+    out=$(curl -s --max-time 30 "$@" 2>/dev/null)
+    if [ -n "$out" ]; then
+      printf '%s' "$out"
+      return 0
+    fi
+  done
+  return 1
 }
 
 json_val() {
