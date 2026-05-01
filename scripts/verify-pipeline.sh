@@ -16,7 +16,9 @@ JELLYSEERR_URL="${JELLYSEERR_URL:-http://192.168.12.151:5055}"
 SONARR_URL="${SONARR_URL:-http://192.168.12.214:8989}"
 RADARR_URL="${RADARR_URL:-http://192.168.12.225:7878}"
 PROWLARR_URL="${PROWLARR_URL:-http://192.168.12.210:9696}"
+JACKETT_URL="${JACKETT_URL:-http://192.168.12.211:9117}"
 QBIT_URL="${QBIT_URL:-http://192.168.12.212:8080}"
+RDTCLIENT_URL="${RDTCLIENT_URL:-http://192.168.12.213:6500}"
 VPN_PROXY="${VPN_PROXY:-http://192.168.12.101:8888}"
 JELLYFIN_URL="${JELLYFIN_URL:-http://192.168.12.231:8096}"
 FLARESOLVERR_URL="${FLARESOLVERR_URL:-http://192.168.12.102:8191}"
@@ -143,17 +145,34 @@ if [ -n "$APP_SYNC" ]; then
 else
   check_warn "Prowlarr has no app sync targets — indexers won't push to Sonarr/Radarr"
 fi
+
+# Jackett (CT-211) is the secondary indexer manager. Prowlarr is primary; if
+# Jackett is down it's advisory only — the *arrs use Prowlarr's syncs.
+JACKETT_CODE=$(http_code "$JACKETT_URL")
+if [[ "$JACKETT_CODE" =~ ^(200|301|302)$ ]]; then
+  check_pass "Jackett responding (HTTP $JACKETT_CODE) — secondary"
+else
+  check_warn "Jackett down (HTTP $JACKETT_CODE) — secondary indexer manager; Prowlarr still works"
+fi
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. qBittorrent (CT-212)
+# 4. Download clients — RDT-Client (primary) + qBittorrent (secondary)
+#    RDT-Client (CT-213) is the primary; qBit (CT-212) is a fallback. Only
+#    RDT-Client being unhealthy is a critical failure.
 # ─────────────────────────────────────────────────────────────────────────────
-echo "[4/8] qBittorrent (CT-212:8080)"
-QBIT_CODE=$(http_code "$QBIT_URL")
-if [ "$QBIT_CODE" = "200" ] || [ "$QBIT_CODE" = "401" ] || [ "$QBIT_CODE" = "302" ]; then
-  check_pass "qBittorrent responding (HTTP $QBIT_CODE)"
+echo "[4/8] Download clients (RDT-Client primary CT-213 / qBit secondary CT-212)"
+RDT_CODE=$(http_code "$RDTCLIENT_URL")
+if [[ "$RDT_CODE" =~ ^(200|301|302|401)$ ]]; then
+  check_pass "RDT-Client responding (HTTP $RDT_CODE) — PRIMARY"
 else
-  check_fail "qBittorrent down (HTTP $QBIT_CODE) — downloads will fail"
+  check_fail "RDT-Client down (HTTP $RDT_CODE) — downloads will fail"
+fi
+QBIT_CODE=$(http_code "$QBIT_URL")
+if [[ "$QBIT_CODE" =~ ^(200|301|302|401)$ ]]; then
+  check_pass "qBittorrent responding (HTTP $QBIT_CODE) — secondary"
+else
+  check_warn "qBittorrent down (HTTP $QBIT_CODE) — secondary client; RDT-Client still works"
 fi
 echo ""
 
