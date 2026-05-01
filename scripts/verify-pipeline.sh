@@ -23,9 +23,10 @@ FLARESOLVERR_URL="${FLARESOLVERR_URL:-http://192.168.12.102:8191}"
 
 # ── API keys (from monitor-media-stack.sh defaults) ──────────────────────────
 SONARR_KEY="${SONARR_KEY:-9e2127824e7446f6a2ddc5da67cfe693}"
-RADARR_KEY="${RADARR_KEY:-cc7485c9f5a64f78bfd226ffe23e2991}"
+RADARR_KEY="${RADARR_KEY:-19e51404b34548aabf48076073898d0d}"
 PROWLARR_KEY="${PROWLARR_KEY:-6719026a4a5042a99897597122fa4495}"
 READARR_KEY="${READARR_KEY:-19566aa7fb90487ebd2c643ad8c6595d}"
+JELLYSEERR_API_KEY="${JELLYSEERR_API_KEY:-}"  # Optional: if set, queries auth-gated /api/v1/settings/* endpoints
 
 # ── Counters ─────────────────────────────────────────────────────────────────
 PASS=0
@@ -46,7 +47,12 @@ check_warn() {
 }
 
 http_code() {
-  curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$@" 2>/dev/null || printf '000'
+  curl -sL -o /dev/null -w '%{http_code}' --max-time 15 "$@" 2>/dev/null || printf '000'
+}
+
+# Curl helper with consistent longer timeout for API queries
+api_curl() {
+  curl -s --max-time 20 "$@" 2>/dev/null
 }
 
 json_val() {
@@ -94,7 +100,7 @@ else
 fi
 
 # Indexer count
-INDEXER_COUNT=$(curl -s --max-time 5 "$PROWLARR_URL/api/v1/indexer" -H "X-Api-Key: $PROWLARR_KEY" | \
+INDEXER_COUNT=$(api_curl "$PROWLARR_URL/api/v1/indexer" -H "X-Api-Key: $PROWLARR_KEY" | \
   json_val 'import sys,json; print(len(json.load(sys.stdin)))' || echo "0")
 if [ "$INDEXER_COUNT" -gt 0 ] 2>/dev/null; then
   check_pass "Prowlarr has $INDEXER_COUNT indexers"
@@ -103,7 +109,7 @@ else
 fi
 
 # App sync
-APP_SYNC=$(curl -s --max-time 5 "$PROWLARR_URL/api/v1/applications" -H "X-Api-Key: $PROWLARR_KEY" | \
+APP_SYNC=$(api_curl "$PROWLARR_URL/api/v1/applications" -H "X-Api-Key: $PROWLARR_KEY" | \
   json_val 'import sys,json; apps=json.load(sys.stdin); print(" ".join(a.get("name","?") for a in apps))' || echo "")
 if [ -n "$APP_SYNC" ]; then
   check_pass "Prowlarr syncs to: $APP_SYNC"
@@ -136,7 +142,7 @@ else
 fi
 
 # Download clients
-SONARR_DL_CLIENTS=$(curl -s --max-time 5 "$SONARR_URL/api/v3/downloadclient" -H "X-Api-Key: $SONARR_KEY" | \
+SONARR_DL_CLIENTS=$(api_curl "$SONARR_URL/api/v3/downloadclient" -H "X-Api-Key: $SONARR_KEY" | \
   json_val 'import sys,json; clients=json.load(sys.stdin); enabled=[c for c in clients if c.get("enable")]; print(len(enabled))' || echo "0")
 if [ "$SONARR_DL_CLIENTS" -gt 0 ] 2>/dev/null; then
   check_pass "Sonarr has $SONARR_DL_CLIENTS enabled download client(s)"
@@ -145,7 +151,7 @@ else
 fi
 
 # Jellyfin notification
-SONARR_JF_NOTIF=$(curl -s --max-time 5 "$SONARR_URL/api/v3/notification" -H "X-Api-Key: $SONARR_KEY" | \
+SONARR_JF_NOTIF=$(api_curl "$SONARR_URL/api/v3/notification" -H "X-Api-Key: $SONARR_KEY" | \
   json_val 'import sys,json; notifs=json.load(sys.stdin); jf=[n for n in notifs if n.get("implementation") in ("MediaBrowser","Emby","Jellyfin")]; print(len(jf))' || echo "0")
 if [ "$SONARR_JF_NOTIF" -gt 0 ] 2>/dev/null; then
   check_pass "Sonarr has Jellyfin notification configured"
@@ -165,7 +171,7 @@ else
   check_fail "Radarr down (HTTP $RADARR_CODE) — movie requests will never process"
 fi
 
-RADARR_DL_CLIENTS=$(curl -s --max-time 5 "$RADARR_URL/api/v3/downloadclient" -H "X-Api-Key: $RADARR_KEY" | \
+RADARR_DL_CLIENTS=$(api_curl "$RADARR_URL/api/v3/downloadclient" -H "X-Api-Key: $RADARR_KEY" | \
   json_val 'import sys,json; clients=json.load(sys.stdin); enabled=[c for c in clients if c.get("enable")]; print(len(enabled))' || echo "0")
 if [ "$RADARR_DL_CLIENTS" -gt 0 ] 2>/dev/null; then
   check_pass "Radarr has $RADARR_DL_CLIENTS enabled download client(s)"
@@ -173,7 +179,7 @@ else
   check_fail "Radarr has no enabled download clients — grabs will fail"
 fi
 
-RADARR_JF_NOTIF=$(curl -s --max-time 5 "$RADARR_URL/api/v3/notification" -H "X-Api-Key: $RADARR_KEY" | \
+RADARR_JF_NOTIF=$(api_curl "$RADARR_URL/api/v3/notification" -H "X-Api-Key: $RADARR_KEY" | \
   json_val 'import sys,json; notifs=json.load(sys.stdin); jf=[n for n in notifs if n.get("implementation") in ("MediaBrowser","Emby","Jellyfin")]; print(len(jf))' || echo "0")
 if [ "$RADARR_JF_NOTIF" -gt 0 ] 2>/dev/null; then
   check_pass "Radarr has Jellyfin notification configured"
@@ -187,27 +193,34 @@ echo ""
 # ─────────────────────────────────────────────────────────────────────────────
 echo "[7/8] Jellyseerr (CT-242:5055)"
 SEERR_CODE=$(http_code "$JELLYSEERR_URL")
-if [ "$SEERR_CODE" = "200" ] || [ "$SEERR_CODE" = "302" ] || [ "$SEERR_CODE" = "301" ]; then
+# Jellyseerr redirects unauthenticated UI requests to /login (307); that's healthy.
+if [[ "$SEERR_CODE" =~ ^(200|301|302|307|308)$ ]]; then
   check_pass "Jellyseerr responding (HTTP $SEERR_CODE)"
 else
   check_fail "Jellyseerr down (HTTP $SEERR_CODE) — no new requests possible"
 fi
 
-# Check Sonarr config in Jellyseerr
-SEERR_SONARR=$(curl -s --max-time 5 "$JELLYSEERR_URL/api/v1/settings/sonarr" | \
-  json_val 'import sys,json; d=json.load(sys.stdin); print(len(d) if isinstance(d, list) else 0)' || echo "0")
-if [ "$SEERR_SONARR" -gt 0 ] 2>/dev/null; then
-  check_pass "Jellyseerr has $SEERR_SONARR Sonarr server(s)"
-else
-  check_fail "Jellyseerr has no Sonarr servers — TV requests go nowhere"
-fi
+# Check Sonarr/Radarr config in Jellyseerr.
+# These endpoints require admin auth; without an API key Jellyseerr returns the
+# /login redirect (which yields 0 entries) and we can't actually verify config.
+if [ -n "$JELLYSEERR_API_KEY" ]; then
+  SEERR_SONARR=$(api_curl -H "X-Api-Key: $JELLYSEERR_API_KEY" "$JELLYSEERR_URL/api/v1/settings/sonarr" | \
+    json_val 'import sys,json; d=json.load(sys.stdin); print(len(d) if isinstance(d, list) else 0)' || echo "0")
+  if [ "$SEERR_SONARR" -gt 0 ] 2>/dev/null; then
+    check_pass "Jellyseerr has $SEERR_SONARR Sonarr server(s)"
+  else
+    check_fail "Jellyseerr has no Sonarr servers — TV requests go nowhere"
+  fi
 
-SEERR_RADARR=$(curl -s --max-time 5 "$JELLYSEERR_URL/api/v1/settings/radarr" | \
-  json_val 'import sys,json; d=json.load(sys.stdin); print(len(d) if isinstance(d, list) else 0)' || echo "0")
-if [ "$SEERR_RADARR" -gt 0 ] 2>/dev/null; then
-  check_pass "Jellyseerr has $SEERR_RADARR Radarr server(s)"
+  SEERR_RADARR=$(api_curl -H "X-Api-Key: $JELLYSEERR_API_KEY" "$JELLYSEERR_URL/api/v1/settings/radarr" | \
+    json_val 'import sys,json; d=json.load(sys.stdin); print(len(d) if isinstance(d, list) else 0)' || echo "0")
+  if [ "$SEERR_RADARR" -gt 0 ] 2>/dev/null; then
+    check_pass "Jellyseerr has $SEERR_RADARR Radarr server(s)"
+  else
+    check_fail "Jellyseerr has no Radarr servers — movie requests go nowhere"
+  fi
 else
-  check_fail "Jellyseerr has no Radarr servers — movie requests go nowhere"
+  check_warn "Jellyseerr Sonarr/Radarr config not verified (set JELLYSEERR_API_KEY env var to enable)"
 fi
 echo ""
 
@@ -215,7 +228,7 @@ echo ""
 # 8. Jellyfin — health + libraries
 # ─────────────────────────────────────────────────────────────────────────────
 echo "[8/8] Jellyfin (CT-231:8096)"
-JF_HEALTH=$(curl -s --max-time 5 "$JELLYFIN_URL/health" 2>/dev/null)
+JF_HEALTH=$(curl -s --max-time 15 "$JELLYFIN_URL/health" 2>/dev/null)
 if echo "$JF_HEALTH" | grep -qi "healthy"; then
   check_pass "Jellyfin healthy"
 else
@@ -228,9 +241,9 @@ else
 fi
 
 # Public system info
-JF_VERSION=$(curl -s --max-time 5 "$JELLYFIN_URL/System/Info/Public" | \
+JF_VERSION=$(api_curl "$JELLYFIN_URL/System/Info/Public" | \
   json_val 'import sys,json; d=json.load(sys.stdin); print(d.get("Version","?"))' || echo "?")
-JF_WIZARD=$(curl -s --max-time 5 "$JELLYFIN_URL/System/Info/Public" | \
+JF_WIZARD=$(api_curl "$JELLYFIN_URL/System/Info/Public" | \
   json_val 'import sys,json; d=json.load(sys.stdin); print(str(d.get("StartupWizardCompleted",False)).lower())' || echo "false")
 if [ "$JF_WIZARD" = "true" ]; then
   check_pass "Jellyfin v$JF_VERSION — setup wizard completed"
