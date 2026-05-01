@@ -20,6 +20,7 @@ QBIT_URL="${QBIT_URL:-http://192.168.12.212:8080}"
 VPN_PROXY="${VPN_PROXY:-http://192.168.12.101:8888}"
 JELLYFIN_URL="${JELLYFIN_URL:-http://192.168.12.231:8096}"
 FLARESOLVERR_URL="${FLARESOLVERR_URL:-http://192.168.12.102:8191}"
+BYPARR_URL="${BYPARR_URL:-http://192.168.12.109:8191}"
 
 # ── API keys (from monitor-media-stack.sh defaults) ──────────────────────────
 SONARR_KEY="${SONARR_KEY:-9e2127824e7446f6a2ddc5da67cfe693}"
@@ -47,7 +48,17 @@ check_warn() {
 }
 
 http_code() {
-  curl -sL -o /dev/null -w '%{http_code}' --max-time 15 "$@" 2>/dev/null || printf '000'
+  local code
+  for _ in 1 2 3; do
+    code=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 15 "$@" 2>/dev/null)
+    # %{http_code} prints concatenated codes when redirects are followed; take last 3 chars
+    code="${code: -3}"
+    if [[ "$code" =~ ^[1-5][0-9][0-9]$ ]]; then
+      printf '%s' "$code"
+      return 0
+    fi
+  done
+  printf '000'
 }
 
 # Curl helper with consistent longer timeout for API queries.
@@ -87,14 +98,20 @@ fi
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. FlareSolverr (CT-102)
+# 2. Cloudflare bypass — FlareSolverr (CT-102) OR Byparr (CT-109)
+#    Byparr is a drop-in FlareSolverr replacement using Camoufox/Playwright.
+#    Either one being up satisfies the requirement.
 # ─────────────────────────────────────────────────────────────────────────────
-echo "[2/8] FlareSolverr (CT-102:8191)"
+echo "[2/8] Cloudflare bypass (FlareSolverr CT-102 / Byparr CT-109)"
 FLARE_CODE=$(http_code "$FLARESOLVERR_URL")
-if [ "$FLARE_CODE" = "200" ] || [ "$FLARE_CODE" = "301" ]; then
+BYPARR_CODE=$(http_code "$BYPARR_URL")
+# Byparr serves 405 on GET / (only POST allowed) — that's a healthy signal
+if [[ "$FLARE_CODE" =~ ^(200|301|302)$ ]]; then
   check_pass "FlareSolverr responding (HTTP $FLARE_CODE)"
+elif [[ "$BYPARR_CODE" =~ ^(200|301|302|405)$ ]]; then
+  check_pass "Byparr responding (HTTP $BYPARR_CODE)"
 else
-  check_warn "FlareSolverr down (HTTP $FLARE_CODE) — Cloudflare-protected indexers will fail"
+  check_warn "No CF bypass available (FlareSolverr=$FLARE_CODE, Byparr=$BYPARR_CODE) — Cloudflare-protected indexers will fail"
 fi
 echo ""
 
